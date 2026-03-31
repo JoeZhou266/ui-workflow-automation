@@ -1,0 +1,186 @@
+{
+  "workflow_name": "Customer Onboarding",
+  "description": "End-to-end onboarding workflow demonstrating all AJAX sync patterns",
+  "start_url": "https://example.test/app/onboarding",
+  "tabs": [
+    {
+      "name": "Profile",
+      "order": 1,
+      "pages": [
+        {
+          "name": "Basic Info",
+          "order": 1,
+          "path": "/profile/basic",
+          "load_criteria": {
+            "condition": "visible",
+            "locator": {
+              "by": "id",
+              "value": "basic-info-form"
+            },
+            "timeout": 20,
+            "require_document_ready": true,
+            "require_ajax_idle": true,
+            "spinner_locator": {
+              "by": "css_selector",
+              "value": ".loading-spinner"
+            }
+          },
+          "sections": [
+            {
+              "name": "Personal Details",
+              "order": 1,
+              "elements": [
+                {
+                  "name": "First Name",
+                  "type": "text",
+                  "action": "input",
+                  "locator": {
+                    "by": "name",
+                    "value": "firstName"
+                  },
+                  "value": "Alice",
+                  "required": true
+                },
+                {
+                  "name": "Last Name",
+                  "type": "text",
+                  "action": "input",
+                  "locator": {
+                    "by": "name",
+                    "value": "lastName"
+                  },
+                  "value": "Smith",
+                  "required": true
+                },
+                {
+                  "name": "Country",
+                  "type": "select",
+                  "action": "select_by_text",
+                  "locator": {
+                    "by": "id",
+                    "value": "country"
+                  },
+                  "value": "Canada",
+                  "pre_wait": {
+                    "condition": "options_count_greater_than",
+                    "locator": {
+                      "by": "id",
+                      "value": "country"
+                    },
+                    "minimum_count": 1,
+                    "timeout": 15
+                  },
+                  "post_wait": {
+                    "condition": "options_count_greater_than",
+                    "locator": {
+                      "by": "id",
+                      "value": "province"
+                    },
+                    "minimum_count": 1,
+                    "timeout": 15,
+                    "require_ajax_idle": true
+                  }
+                },
+                {
+                  "name": "Province",
+                  "type": "select",
+                  "action": "select_by_text",
+                  "locator": {
+                    "by": "id",
+                    "value": "province"
+                  },
+                  "value": "Ontario"
+                },
+                {
+                  "name": "Subscribe to Newsletter",
+                  "type": "checkbox",
+                  "action": "check",
+                  "locator": {
+                    "by": "id",
+                    "value": "newsletter"
+                  }
+                },
+                {
+                  "name": "Continue",
+                  "type": "button",
+                  "action": "click",
+                  "locator": {
+                    "by": "css_selector",
+                    "value": "button.next"
+                  },
+                  "post_wait": {
+                    "condition": "visible",
+                    "locator": {
+                      "by": "id",
+                      "value": "employment-form"
+                    },
+                    "timeout": 20,
+                    "spinner_locator": {
+                      "by": "css_selector",
+                      "value": ".loading-spinner"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Employment Info",
+          "order": 2,
+          "path": "/profile/employment",
+          "load_criteria": {
+            "condition": "visible",
+            "locator": {
+              "by": "id",
+              "value": "employment-form"
+            },
+            "timeout": 20,
+            "require_document_ready": true,
+            "require_ajax_idle": true
+          },
+          "sections": [
+            {
+              "name": "Employment",
+              "order": 1,
+              "elements": [
+                {
+                  "name": "Employer",
+                  "type": "text",
+                  "action": "input",
+                  "locator": {
+                    "by": "name",
+                    "value": "employer"
+                  },
+                  "value": "Acme Corp"
+                },
+                {
+                  "name": "Save",
+                  "type": "button",
+                  "action": "click",
+                  "locator": {
+                    "by": "id",
+                    "value": "saveButton"
+                  },
+                  "post_wait": {
+                    "condition": "text_contains",
+                    "locator": {
+                      "by": "css_selector",
+                      "value": ".toast-message"
+                    },
+                    "text_expected": "saved successfully",
+                    "timeout": 20,
+                    "spinner_locator": {
+                      "by": "css_selector",
+                      "value": ".loading-mask"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,170 @@
+{
+  "workflow_name": "Sample Workflow",
+  "description": "Demonstrates all supported element types and actions",
+  "start_url": "https://the-internet.herokuapp.com",
+  "tabs": [
+    {
+      "name": "Form Demo",
+      "order": 1,
+      "pages": [
+        {
+          "name": "Login Page",
+          "order": 1,
+          "path": "/login",
+          "load_criteria": {
+            "condition": "visible",
+            "locator": {
+              "by": "id",
+              "value": "login"
+            },
+            "timeout": 15,
+            "require_document_ready": true
+          },
+          "sections": [
+            {
+              "name": "Credentials",
+              "order": 1,
+              "elements": [
+                {
+                  "name": "Username",
+                  "type": "text",
+                  "action": "input",
+                  "locator": {
+                    "by": "id",
+                    "value": "username"
+                  },
+                  "value": "tomsmith",
+                  "required": true
+                },
+                {
+                  "name": "Password",
+                  "type": "text",
+                  "action": "input",
+                  "locator": {
+                    "by": "id",
+                    "value": "password"
+                  },
+                  "value": "SuperSecretPassword!",
+                  "required": true
+                },
+                {
+                  "name": "Login Button",
+                  "type": "button",
+                  "action": "click",
+                  "locator": {
+                    "by": "css_selector",
+                    "value": "button[type='submit']"
+                  },
+                  "post_wait": {
+                    "condition": "visible",
+                    "locator": {
+                      "by": "css_selector",
+                      "value": ".flash.success"
+                    },
+                    "timeout": 10
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Checkboxes",
+      "order": 2,
+      "pages": [
+        {
+          "name": "Checkbox Page",
+          "order": 1,
+          "path": "/checkboxes",
+          "load_criteria": {
+            "condition": "visible",
+            "locator": {
+              "by": "id",
+              "value": "checkboxes"
+            },
+            "timeout": 10,
+            "require_document_ready": true
+          },
+          "sections": [
+            {
+              "name": "Checkboxes",
+              "order": 1,
+              "locator": {
+                "by": "id",
+                "value": "checkboxes"
+              },
+              "elements": [
+                {
+                  "name": "Checkbox 1",
+                  "type": "checkbox",
+                  "action": "check",
+                  "locator": {
+                    "by": "css_selector",
+                    "value": "input[type='checkbox']:nth-of-type(1)"
+                  }
+                },
+                {
+                  "name": "Checkbox 2",
+                  "type": "checkbox",
+                  "action": "uncheck",
+                  "locator": {
+                    "by": "css_selector",
+                    "value": "input[type='checkbox']:nth-of-type(2)"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Dropdown",
+      "order": 3,
+      "pages": [
+        {
+          "name": "Dropdown Page",
+          "order": 1,
+          "path": "/dropdown",
+          "load_criteria": {
+            "condition": "visible",
+            "locator": {
+              "by": "id",
+              "value": "dropdown"
+            },
+            "timeout": 10
+          },
+          "sections": [
+            {
+              "name": "Select Section",
+              "order": 1,
+              "elements": [
+                {
+                  "name": "Option Dropdown",
+                  "type": "select",
+                  "action": "select_by_text",
+                  "locator": {
+                    "by": "id",
+                    "value": "dropdown"
+                  },
+                  "value": "Option 1",
+                  "pre_wait": {
+                    "condition": "options_count_greater_than",
+                    "locator": {
+                      "by": "id",
+                      "value": "dropdown"
+                    },
+                    "minimum_count": 1,
+                    "timeout": 10
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+.env
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+env/
+log/*.log
+
+# Reports / screenshots (keep dir, ignore contents)
+reports/screenshots/
+reports/*.html
+reports/*.xml
+allure-results/
+allure-report/
+
+# webdriver-manager cache
+.wdm/
+
+# IDE
+.idea/
