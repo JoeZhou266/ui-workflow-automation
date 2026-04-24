@@ -24,7 +24,8 @@ class DriverManager:
 
     def __init__(self, config: AppConfig, driver_path: Optional[str] = None) -> None:
         self._config = config
-        self._driver_path = driver_path
+        self._driver_path = driver_path or config.driver_path
+        self._binary_path = config.browser_binary_path
         self._driver: Optional[WebDriver] = None
 
     def start(self) -> WebDriver:
@@ -37,6 +38,7 @@ class DriverManager:
             page_load_timeout=self._config.page_load_timeout,
             implicit_wait=self._config.implicit_wait,
             driver_path=self._driver_path,
+            binary_path=self._binary_path,
         )
         logger.info("WebDriver started: %s", self._config.browser)
         return self._driver
