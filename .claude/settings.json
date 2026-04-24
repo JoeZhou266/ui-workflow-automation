@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git worktree *)",
+      "Bash(pytest tests/unit/ -v)",
+      "Bash(pytest tests/unit/test_app_config.py -v)",
+      "Bash(pytest tests/unit/test_driver_factory.py -v)",
+      "Bash(git checkout *)",
+      "Bash(git pull *)",
+      "Bash(git merge *)",
+      "Bash(pytest tests/unit/)",
+      "Bash(git push *)"
+    ],
+    "additionalDirectories": [
+      "/Users/jinguangzhou/SourceCode/github/ui-workflow-automation/ui-workflow-automation/docs/superpowers"
+    ]
+  }
+}
