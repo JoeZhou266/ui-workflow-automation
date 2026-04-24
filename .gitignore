@@ -24,3 +24,6 @@ allure-report/
 
 # IDE
 .idea/
+
+# Git worktrees
+.worktrees/
