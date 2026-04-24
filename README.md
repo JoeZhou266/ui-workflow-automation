@@ -139,7 +139,13 @@ screenshots_dir: reports/screenshots
 log_level: DEBUG
 window_width: 1920
 window_height: 1080
+# driver_path:          # e.g. /usr/local/bin/chromedriver  (leave commented to use webdriver-manager)
+# browser_binary_path:  # e.g. /opt/google/chrome/chrome    (leave commented to use system default)
 ```
+
+`driver_path` points to the **WebDriver binary** (chromedriver, geckodriver, msedgedriver). When set, `webdriver-manager` is bypassed entirely. When absent, `webdriver-manager` auto-downloads the matching driver.
+
+`browser_binary_path` points to the **browser executable** itself (useful for non-default installs such as Chrome Canary, a pinned corporate build, or a CI-managed binary). When absent, Selenium uses the browser found on `PATH`.
 
 ### Environment variables (`.env` or shell)
 
@@ -153,6 +159,8 @@ window_height: 1080
 | `AJAX_IDLE_TIMEOUT` | `15` | Timeout for jQuery/AJAX idle checks |
 | `SCREENSHOTS_DIR` | `reports/screenshots` | Output directory for failure screenshots |
 | `LOG_LEVEL` | `INFO` | `DEBUG`, `INFO`, `WARNING`, or `ERROR` |
+| `DRIVER_PATH` | _(auto via webdriver-manager)_ | Absolute path to the WebDriver binary (chromedriver / geckodriver / msedgedriver) |
+| `BROWSER_BINARY_PATH` | _(system default)_ | Absolute path to the browser executable (Chrome, Firefox, Edge) |
 
 ### Pytest CLI options
 
@@ -421,6 +429,25 @@ pytest tests/smoke/ \
 pytest tests/smoke/ \
   --workflow testdata/workflows/sample_workflow.json \
   --browser firefox --headless -v
+
+# Run with a locally installed ChromeDriver (bypasses webdriver-manager)
+DRIVER_PATH=/usr/local/bin/chromedriver \
+pytest tests/smoke/ \
+  --workflow testdata/workflows/sample_workflow.json \
+  --env dev -v
+
+# Run with a non-default Chrome binary (e.g. Chrome Canary or a pinned CI build)
+BROWSER_BINARY_PATH="/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary" \
+pytest tests/smoke/ \
+  --workflow testdata/workflows/sample_workflow.json \
+  --env dev --headless -v
+
+# Combine both — local driver AND specific browser binary
+DRIVER_PATH=/usr/local/bin/chromedriver \
+BROWSER_BINARY_PATH=/opt/chrome-stable/chrome \
+pytest tests/smoke/ \
+  --workflow testdata/workflows/sample_workflow.json \
+  --env dev --headless -v
 
 # Run only tests matching a marker
 pytest -m unit -v
