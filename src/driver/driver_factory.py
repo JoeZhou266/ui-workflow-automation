@@ -35,6 +35,7 @@ class DriverFactory:
         page_load_timeout: int = 30,
         implicit_wait: int = 0,
         driver_path: Optional[str] = None,
+        binary_path: Optional[str] = None,
     ) -> WebDriver:
         """Create and return a configured WebDriver.
 
@@ -45,8 +46,10 @@ class DriverFactory:
             window_height: Viewport height in pixels.
             page_load_timeout: Seconds before a page load is considered timed out.
             implicit_wait: Implicit wait seconds (keep at 0 for explicit-only strategy).
-            driver_path: Optional path to the driver binary. If omitted, webdriver-manager
-                         resolves it automatically.
+            driver_path: Optional path to the WebDriver binary. If omitted,
+                         webdriver-manager resolves it automatically.
+            binary_path: Optional path to the browser binary. If omitted, the
+                         browser installed in the default system location is used.
 
         Returns:
             A ready-to-use :class:`WebDriver` instance.
@@ -58,11 +61,11 @@ class DriverFactory:
         )
 
         if browser_type == BrowserType.CHROME:
-            driver = cls._create_chrome(headless, window_width, window_height, driver_path)
+            driver = cls._create_chrome(headless, window_width, window_height, driver_path, binary_path)
         elif browser_type == BrowserType.FIREFOX:
-            driver = cls._create_firefox(headless, window_width, window_height, driver_path)
+            driver = cls._create_firefox(headless, window_width, window_height, driver_path, binary_path)
         elif browser_type == BrowserType.EDGE:
-            driver = cls._create_edge(headless, window_width, window_height, driver_path)
+            driver = cls._create_edge(headless, window_width, window_height, driver_path, binary_path)
         else:
             raise ValueError(f"Unsupported browser: {browser}")
 
@@ -81,8 +84,11 @@ class DriverFactory:
         width: int,
         height: int,
         driver_path: Optional[str],
+        binary_path: Optional[str],
     ) -> WebDriver:
         options = ChromeOptions()
+        if binary_path:
+            options.binary_location = binary_path
         if headless:
             options.add_argument("--headless=new")
         options.add_argument(f"--window-size={width},{height}")
@@ -110,8 +116,11 @@ class DriverFactory:
         width: int,
         height: int,
         driver_path: Optional[str],
+        binary_path: Optional[str],
     ) -> WebDriver:
         options = FirefoxOptions()
+        if binary_path:
+            options.binary_location = binary_path
         if headless:
             options.add_argument("--headless")
         options.add_argument(f"--width={width}")
@@ -135,8 +144,11 @@ class DriverFactory:
         width: int,
         height: int,
         driver_path: Optional[str],
+        binary_path: Optional[str],
     ) -> WebDriver:
         options = EdgeOptions()
+        if binary_path:
+            options.binary_location = binary_path
         if headless:
             options.add_argument("--headless=new")
         options.add_argument(f"--window-size={width},{height}")
