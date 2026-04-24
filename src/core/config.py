@@ -55,6 +55,8 @@ class AppConfig:
         self.window_height: int = int(
             self._resolve("WINDOW_HEIGHT", "window_height", DEFAULT_WINDOW_HEIGHT)
         )
+        self.driver_path: Optional[str] = self._resolve_optional("DRIVER_PATH", "driver_path")
+        self.browser_binary_path: Optional[str] = self._resolve_optional("BROWSER_BINARY_PATH", "browser_binary_path")
 
     def _load_yaml(self, env: str, config_dir: str) -> dict:
         path = Path(config_dir) / f"env.{env}.yaml"
@@ -75,3 +77,12 @@ class AppConfig:
     def _resolve_bool(self, env_key: str, yaml_key: str, default: bool) -> bool:
         raw = self._resolve(env_key, yaml_key, str(default))
         return raw.lower() in ("true", "1", "yes")
+
+    def _resolve_optional(self, env_key: str, yaml_key: str) -> Optional[str]:
+        env_val = os.environ.get(env_key)
+        if env_val is not None and env_val != "":
+            return env_val
+        yaml_val = self._data.get(yaml_key)
+        if yaml_val is not None:
+            return str(yaml_val)
+        return None
