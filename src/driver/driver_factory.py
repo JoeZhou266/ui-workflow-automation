@@ -96,6 +96,9 @@ class DriverFactory:
         options.add_argument("--disable-dev-shm-usage")
         options.add_argument("--disable-gpu")
         options.add_argument("--disable-extensions")
+        options.add_argument("--ingore-certificate-errors")
+        options.add_argument("--ignore-ssl-errors")
+        options.add_argument("--allow-insecure-actions")
         options.add_experimental_option("excludeSwitches", ["enable-logging"])
 
         if driver_path:
@@ -104,7 +107,8 @@ class DriverFactory:
             try:
                 from webdriver_manager.chrome import ChromeDriverManager
                 service = ChromeService(ChromeDriverManager().install())
-            except ImportError:
+            except Exception as e:
+                logger.warning("webdriver-manager failed (%s); falling back to system PATH chromedriver", e)
                 service = ChromeService()
 
         return webdriver.Chrome(service=service, options=options)
@@ -132,7 +136,8 @@ class DriverFactory:
             try:
                 from webdriver_manager.firefox import GeckoDriverManager
                 service = FirefoxService(GeckoDriverManager().install())
-            except ImportError:
+            except Exception as e:
+                logger.warning("webdriver-manager failed (%s); falling back to system PATH geckodriver", e)
                 service = FirefoxService()
 
         return webdriver.Firefox(service=service, options=options)
@@ -161,7 +166,8 @@ class DriverFactory:
             try:
                 from webdriver_manager.microsoft import EdgeChromiumDriverManager
                 service = EdgeService(EdgeChromiumDriverManager().install())
-            except ImportError:
+            except Exception as e:
+                logger.warning("webdriver-manager failed (%s); falling back to system PATH msedgedriver", e)
                 service = EdgeService()
 
         return webdriver.Edge(service=service, options=options)
