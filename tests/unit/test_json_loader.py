@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 from src.core.exceptions import WorkflowValidationError
-from src.data.json_loader import WorkflowLoader
+from src.data.json_loader import WorkflowLoader, resolve_refs
 
 
 VALID_WORKFLOW = {
@@ -99,3 +99,137 @@ class TestWorkflowLoader:
         path = self._write_json(tmp_path, VALID_WORKFLOW)
         wf = WorkflowLoader.load(str(path))  # str, not Path
         assert wf.workflow_name == "Test"
+
+    def test_load_resolves_tab_ref(self, tmp_path):
+        tab_data = {"name": "Account", "order": 1, "pages": []}
+        tabs_dir = tmp_path / "tabs"
+        tabs_dir.mkdir()
+        (tabs_dir / "account_tab.json").write_text(json.dumps(tab_data), encoding="utf-8")
+
+        workflow_data = {
+            "workflow_name": "Onboarding",
+            "start_url": "https://example.com",
+            "tabs": [{"$ref": "tabs/account_tab.json"}],
+        }
+        wf_path = tmp_path / "workflow.json"
+        wf_path.write_text(json.dumps(workflow_data), encoding="utf-8")
+
+        wf = WorkflowLoader.load(wf_path)
+        assert len(wf.tabs) == 1
+        assert wf.tabs[0].name == "Account"
+
+    def test_load_raw_resolves_refs(self, tmp_path):
+        tab_data = {"name": "Account", "order": 1, "pages": []}
+        tabs_dir = tmp_path / "tabs"
+        tabs_dir.mkdir()
+        (tabs_dir / "account_tab.json").write_text(json.dumps(tab_data), encoding="utf-8")
+
+        workflow_data = {
+            "workflow_name": "Onboarding",
+            "start_url": "https://example.com",
+            "tabs": [{"$ref": "tabs/account_tab.json"}],
+        }
+        wf_path = tmp_path / "workflow.json"
+        wf_path.write_text(json.dumps(workflow_data), encoding="utf-8")
+
+        raw = WorkflowLoader.load_raw(wf_path)
+        assert raw["tabs"][0]["name"] == "Account"
+
+    def test_load_nested_ref_fixture(self):
+        fixture = Path(__file__).parent.parent.parent / "testdata/workflows/nested_ref_workflow.json"
+        wf = WorkflowLoader.load(fixture)
+        assert wf.workflow_name == "Onboarding"
+        assert len(wf.tabs) == 2
+        assert wf.tabs[0].name == "Account"
+        account_sections = wf.tabs[0].pages[0].sections
+        assert account_sections[0].name == "Personal Info"
+        assert account_sections[1].name == "Address"
+        assert wf.tabs[1].name == "Summary"
+        assert wf.tabs[1].pages[0].name == "Summary Page"
+
+
+class TestResolveRefs:
+    def test_no_refs_returns_data_unchanged(self, tmp_path):
+        data = {"workflow_name": "Test", "tabs": []}
+        result = resolve_refs(data, tmp_path)
+        assert result == data
+
+    def test_resolves_ref_in_dict(self, tmp_path):
+        tab_data = {"name": "Account", "pages": []}
+        (tmp_path / "account_tab.json").write_text(json.dumps(tab_data), encoding="utf-8")
+
+        data = {"$ref": "account_tab.json"}
+        result = resolve_refs(data, tmp_path)
+        assert result == tab_data
+
+    def test_resolves_ref_in_list(self, tmp_path):
+        tab_data = {"name": "Account", "pages": []}
+        (tmp_path / "account_tab.json").write_text(json.dumps(tab_data), encoding="utf-8")
+
+        data = {"tabs": [{"$ref": "account_tab.json"}, {"name": "Summary", "pages": []}]}
+        result = resolve_refs(data, tmp_path)
+        assert result == {
+            "tabs": [
+                {"name": "Account", "pages": []},
+                {"name": "Summary", "pages": []},
+            ]
+        }
+
+    def test_resolves_nested_refs(self, tmp_path):
+        sections_dir = tmp_path / "sections"
+        sections_dir.mkdir()
+        section_data = {"name": "Personal Info", "fields": ["first_name", "last_name"]}
+        (sections_dir / "personal_info.json").write_text(
+            json.dumps(section_data), encoding="utf-8"
+        )
+
+        tabs_dir = tmp_path / "tabs"
+        tabs_dir.mkdir()
+        tab_data = {
+            "name": "Account",
+            "pages": [
+                {
+                    "name": "Profile",
+                    "sections": [
+                        {"$ref": "../sections/personal_info.json"},
+                        {"name": "Address"},
+                    ],
+                }
+            ],
+        }
+        (tabs_dir / "account_tab.json").write_text(json.dumps(tab_data), encoding="utf-8")
+
+        data = {"tabs": [{"$ref": "tabs/account_tab.json"}]}
+        result = resolve_refs(data, tmp_path)
+
+        assert result == {
+            "tabs": [
+                {
+                    "name": "Account",
+                    "pages": [
+                        {
+                            "name": "Profile",
+                            "sections": [
+                                {"name": "Personal Info", "fields": ["first_name", "last_name"]},
+                                {"name": "Address"},
+                            ],
+                        }
+                    ],
+                }
+            ]
+        }
+
+    def test_missing_ref_raises_file_not_found(self, tmp_path):
+        data = {"$ref": "nonexistent.json"}
+        with pytest.raises(FileNotFoundError, match="nonexistent.json"):
+            resolve_refs(data, tmp_path)
+
+    def test_circular_ref_raises_value_error(self, tmp_path):
+        a = tmp_path / "a.json"
+        b = tmp_path / "b.json"
+        a.write_text(json.dumps({"$ref": "b.json"}), encoding="utf-8")
+        b.write_text(json.dumps({"$ref": "a.json"}), encoding="utf-8")
+
+        data = {"$ref": "a.json"}
+        with pytest.raises(ValueError, match="Circular"):
+            resolve_refs(data, tmp_path)
