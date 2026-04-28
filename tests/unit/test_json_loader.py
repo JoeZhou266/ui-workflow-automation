@@ -171,3 +171,18 @@ class TestResolveRefs:
                 }
             ]
         }
+
+    def test_missing_ref_raises_file_not_found(self, tmp_path):
+        data = {"$ref": "nonexistent.json"}
+        with pytest.raises(FileNotFoundError, match="nonexistent.json"):
+            resolve_refs(data, tmp_path)
+
+    def test_circular_ref_raises_value_error(self, tmp_path):
+        a = tmp_path / "a.json"
+        b = tmp_path / "b.json"
+        a.write_text(json.dumps({"$ref": "b.json"}), encoding="utf-8")
+        b.write_text(json.dumps({"$ref": "a.json"}), encoding="utf-8")
+
+        data = {"$ref": "a.json"}
+        with pytest.raises(ValueError, match="Circular"):
+            resolve_refs(data, tmp_path)
