@@ -114,3 +114,16 @@ class TestResolveRefs:
         data = {"$ref": "account_tab.json"}
         result = resolve_refs(data, tmp_path)
         assert result == tab_data
+
+    def test_resolves_ref_in_list(self, tmp_path):
+        tab_data = {"name": "Account", "pages": []}
+        (tmp_path / "account_tab.json").write_text(json.dumps(tab_data), encoding="utf-8")
+
+        data = {"tabs": [{"$ref": "account_tab.json"}, {"name": "Summary", "pages": []}]}
+        result = resolve_refs(data, tmp_path)
+        assert result == {
+            "tabs": [
+                {"name": "Account", "pages": []},
+                {"name": "Summary", "pages": []},
+            ]
+        }
