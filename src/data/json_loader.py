@@ -11,6 +11,46 @@ from src.models.workflow_models import WorkflowDefinition
 logger = get_logger("json_loader")
 
 
+def resolve_refs(
+    data: object,
+    base_dir: Path,
+    _resolving: frozenset = frozenset(),
+) -> object:
+    """Recursively resolve ``{"$ref": "<path>"}`` nodes in *data*.
+
+    Args:
+        data: Parsed JSON value (dict, list, or scalar).
+        base_dir: Directory used to resolve relative ``$ref`` paths.
+        _resolving: Absolute paths currently on the resolution call stack
+            (used to detect circular references).
+
+    Returns:
+        The fully resolved data structure.
+
+    Raises:
+        FileNotFoundError: If a referenced file does not exist.
+        ValueError: If a circular reference is detected.
+    """
+    if isinstance(data, dict):
+        if "$ref" in data:
+            ref_path = (base_dir / data["$ref"]).resolve()
+            if ref_path in _resolving:
+                raise ValueError(
+                    f"Circular $ref detected: {ref_path}"
+                )
+            if not ref_path.exists():
+                raise FileNotFoundError(
+                    f"$ref target not found: {ref_path}"
+                )
+            raw = ref_path.read_text(encoding="utf-8")
+            loaded = json.loads(raw)
+            return resolve_refs(loaded, ref_path.parent, _resolving | {ref_path})
+        return {k: resolve_refs(v, base_dir, _resolving) for k, v in data.items()}
+    if isinstance(data, list):
+        return [resolve_refs(item, base_dir, _resolving) for item in data]
+    return data
+
+
 class WorkflowLoader:
     """Loads and parses a workflow JSON file into a :class:`WorkflowDefinition`."""
 

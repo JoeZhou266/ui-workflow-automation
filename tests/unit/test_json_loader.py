@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 from src.core.exceptions import WorkflowValidationError
-from src.data.json_loader import WorkflowLoader
+from src.data.json_loader import WorkflowLoader, resolve_refs
 
 
 VALID_WORKFLOW = {
@@ -99,3 +99,18 @@ class TestWorkflowLoader:
         path = self._write_json(tmp_path, VALID_WORKFLOW)
         wf = WorkflowLoader.load(str(path))  # str, not Path
         assert wf.workflow_name == "Test"
+
+
+class TestResolveRefs:
+    def test_no_refs_returns_data_unchanged(self, tmp_path):
+        data = {"workflow_name": "Test", "tabs": []}
+        result = resolve_refs(data, tmp_path)
+        assert result == data
+
+    def test_resolves_ref_in_dict(self, tmp_path):
+        tab_data = {"name": "Account", "pages": []}
+        (tmp_path / "account_tab.json").write_text(json.dumps(tab_data), encoding="utf-8")
+
+        data = {"$ref": "account_tab.json"}
+        result = resolve_refs(data, tmp_path)
+        assert result == tab_data
