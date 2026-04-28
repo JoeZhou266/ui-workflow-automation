@@ -1,0 +1,50 @@
+{
+  "name": "Checkboxes",
+  "order": 2,
+  "pages": [
+    {
+      "name": "Checkbox Page",
+      "order": 1,
+      "path": "/checkboxes",
+      "load_criteria": {
+        "condition": "visible",
+        "locator": {
+          "by": "id",
+          "value": "checkboxes"
+        },
+        "timeout": 10,
+        "require_document_ready": true
+      },
+      "sections": [
+        {
+          "name": "Checkboxes",
+          "order": 1,
+          "locator": {
+            "by": "id",
+            "value": "checkboxes"
+          },
+          "elements": [
+            {
+              "name": "Checkbox 1",
+              "type": "checkbox",
+              "action": "check",
+              "locator": {
+                "by": "css_selector",
+                "value": "input[type='checkbox']:nth-of-type(1)"
+              }
+            },
+            {
+              "name": "Checkbox 2",
+              "type": "checkbox",
+              "action": "uncheck",
+              "locator": {
+                "by": "css_selector",
+                "value": "input[type='checkbox']:nth-of-type(2)"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

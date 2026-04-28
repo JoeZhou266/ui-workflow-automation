@@ -1,0 +1,8 @@
+{
+  "name": "Profile",
+  "order": 1,
+  "pages": [
+    { "$ref": "../pages/basic_info_page.json" },
+    { "$ref": "../pages/employment_info_page.json" }
+  ]
+}

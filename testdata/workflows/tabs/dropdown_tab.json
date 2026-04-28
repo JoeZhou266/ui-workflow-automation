@@ -1,0 +1,46 @@
+{
+  "name": "Dropdown",
+  "order": 3,
+  "pages": [
+    {
+      "name": "Dropdown Page",
+      "order": 1,
+      "path": "/dropdown",
+      "load_criteria": {
+        "condition": "visible",
+        "locator": {
+          "by": "id",
+          "value": "dropdown"
+        },
+        "timeout": 10
+      },
+      "sections": [
+        {
+          "name": "Select Section",
+          "order": 1,
+          "elements": [
+            {
+              "name": "Option Dropdown",
+              "type": "select",
+              "action": "select_by_text",
+              "locator": {
+                "by": "id",
+                "value": "dropdown"
+              },
+              "value": "Option 1",
+              "pre_wait": {
+                "condition": "options_count_greater_than",
+                "locator": {
+                  "by": "id",
+                  "value": "dropdown"
+                },
+                "minimum_count": 1,
+                "timeout": 10
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
