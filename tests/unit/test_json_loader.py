@@ -100,6 +100,41 @@ class TestWorkflowLoader:
         wf = WorkflowLoader.load(str(path))  # str, not Path
         assert wf.workflow_name == "Test"
 
+    def test_load_resolves_tab_ref(self, tmp_path):
+        tab_data = {"name": "Account", "order": 1, "pages": []}
+        tabs_dir = tmp_path / "tabs"
+        tabs_dir.mkdir()
+        (tabs_dir / "account_tab.json").write_text(json.dumps(tab_data), encoding="utf-8")
+
+        workflow_data = {
+            "workflow_name": "Onboarding",
+            "start_url": "https://example.com",
+            "tabs": [{"$ref": "tabs/account_tab.json"}],
+        }
+        wf_path = tmp_path / "workflow.json"
+        wf_path.write_text(json.dumps(workflow_data), encoding="utf-8")
+
+        wf = WorkflowLoader.load(wf_path)
+        assert len(wf.tabs) == 1
+        assert wf.tabs[0].name == "Account"
+
+    def test_load_raw_resolves_refs(self, tmp_path):
+        tab_data = {"name": "Account", "order": 1, "pages": []}
+        tabs_dir = tmp_path / "tabs"
+        tabs_dir.mkdir()
+        (tabs_dir / "account_tab.json").write_text(json.dumps(tab_data), encoding="utf-8")
+
+        workflow_data = {
+            "workflow_name": "Onboarding",
+            "start_url": "https://example.com",
+            "tabs": [{"$ref": "tabs/account_tab.json"}],
+        }
+        wf_path = tmp_path / "workflow.json"
+        wf_path.write_text(json.dumps(workflow_data), encoding="utf-8")
+
+        raw = WorkflowLoader.load_raw(wf_path)
+        assert raw["tabs"][0]["name"] == "Account"
+
 
 class TestResolveRefs:
     def test_no_refs_returns_data_unchanged(self, tmp_path):

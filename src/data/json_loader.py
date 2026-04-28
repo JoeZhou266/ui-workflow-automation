@@ -96,6 +96,11 @@ class WorkflowLoader:
                 f"Invalid JSON: {exc}", path=str_path
             ) from exc
 
+        try:
+            data = resolve_refs(data, file_path.parent)
+        except (FileNotFoundError, ValueError) as exc:
+            raise WorkflowValidationError(str(exc), path=str_path) from exc
+
         if not isinstance(data, dict):
             raise WorkflowValidationError(
                 "Workflow JSON root must be an object", path=str_path
@@ -117,10 +122,11 @@ class WorkflowLoader:
 
     @staticmethod
     def load_raw(path: Union[str, Path]) -> dict:
-        """Load a JSON file and return the raw dict without model validation."""
+        """Load a JSON file, resolve $ref references, and return the raw dict."""
         file_path = Path(path)
         try:
             raw = file_path.read_text(encoding="utf-8")
-            return json.loads(raw)
+            data = json.loads(raw)
+            return resolve_refs(data, file_path.parent)
         except (OSError, json.JSONDecodeError) as exc:
             raise WorkflowValidationError(str(exc), path=str(file_path)) from exc
