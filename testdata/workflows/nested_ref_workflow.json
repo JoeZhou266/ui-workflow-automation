@@ -1,0 +1,14 @@
+{
+  "workflow_name": "Onboarding",
+  "start_url": "https://example.com",
+  "tabs": [
+    { "$ref": "./tabs/account_tab.json" },
+    {
+      "name": "Summary",
+      "order": 2,
+      "pages": [
+        { "$ref": "./pages/summary_page.json" }
+      ]
+    }
+  ]
+}

@@ -135,6 +135,18 @@ class TestWorkflowLoader:
         raw = WorkflowLoader.load_raw(wf_path)
         assert raw["tabs"][0]["name"] == "Account"
 
+    def test_load_nested_ref_fixture(self):
+        fixture = Path(__file__).parent.parent.parent / "testdata/workflows/nested_ref_workflow.json"
+        wf = WorkflowLoader.load(fixture)
+        assert wf.workflow_name == "Onboarding"
+        assert len(wf.tabs) == 2
+        assert wf.tabs[0].name == "Account"
+        account_sections = wf.tabs[0].pages[0].sections
+        assert account_sections[0].name == "Personal Info"
+        assert account_sections[1].name == "Address"
+        assert wf.tabs[1].name == "Summary"
+        assert wf.tabs[1].pages[0].name == "Summary Page"
+
 
 class TestResolveRefs:
     def test_no_refs_returns_data_unchanged(self, tmp_path):

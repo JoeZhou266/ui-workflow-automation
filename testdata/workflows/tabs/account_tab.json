@@ -1,0 +1,14 @@
+{
+  "name": "Account",
+  "order": 1,
+  "pages": [
+    {
+      "name": "Profile",
+      "order": 1,
+      "sections": [
+        { "$ref": "../sections/personal_info.json" },
+        { "name": "Address", "order": 2, "elements": [] }
+      ]
+    }
+  ]
+}
