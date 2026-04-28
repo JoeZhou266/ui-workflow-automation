@@ -127,3 +127,47 @@ class TestResolveRefs:
                 {"name": "Summary", "pages": []},
             ]
         }
+
+    def test_resolves_nested_refs(self, tmp_path):
+        sections_dir = tmp_path / "sections"
+        sections_dir.mkdir()
+        section_data = {"name": "Personal Info", "fields": ["first_name", "last_name"]}
+        (sections_dir / "personal_info.json").write_text(
+            json.dumps(section_data), encoding="utf-8"
+        )
+
+        tabs_dir = tmp_path / "tabs"
+        tabs_dir.mkdir()
+        tab_data = {
+            "name": "Account",
+            "pages": [
+                {
+                    "name": "Profile",
+                    "sections": [
+                        {"$ref": "../sections/personal_info.json"},
+                        {"name": "Address"},
+                    ],
+                }
+            ],
+        }
+        (tabs_dir / "account_tab.json").write_text(json.dumps(tab_data), encoding="utf-8")
+
+        data = {"tabs": [{"$ref": "tabs/account_tab.json"}]}
+        result = resolve_refs(data, tmp_path)
+
+        assert result == {
+            "tabs": [
+                {
+                    "name": "Account",
+                    "pages": [
+                        {
+                            "name": "Profile",
+                            "sections": [
+                                {"name": "Personal Info", "fields": ["first_name", "last_name"]},
+                                {"name": "Address"},
+                            ],
+                        }
+                    ],
+                }
+            ]
+        }
