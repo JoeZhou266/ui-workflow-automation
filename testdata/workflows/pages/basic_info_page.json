@@ -1,0 +1,118 @@
+{
+  "name": "Basic Info",
+  "order": 1,
+  "path": "/profile/basic",
+  "load_criteria": {
+    "condition": "visible",
+    "locator": {
+      "by": "id",
+      "value": "basic-info-form"
+    },
+    "timeout": 20,
+    "require_document_ready": true,
+    "require_ajax_idle": true,
+    "spinner_locator": {
+      "by": "css_selector",
+      "value": ".loading-spinner"
+    }
+  },
+  "sections": [
+    {
+      "name": "Personal Details",
+      "order": 1,
+      "elements": [
+        {
+          "name": "First Name",
+          "type": "text",
+          "action": "input",
+          "locator": {
+            "by": "name",
+            "value": "firstName"
+          },
+          "value": "Alice",
+          "required": true
+        },
+        {
+          "name": "Last Name",
+          "type": "text",
+          "action": "input",
+          "locator": {
+            "by": "name",
+            "value": "lastName"
+          },
+          "value": "Smith",
+          "required": true
+        },
+        {
+          "name": "Country",
+          "type": "select",
+          "action": "select_by_text",
+          "locator": {
+            "by": "id",
+            "value": "country"
+          },
+          "value": "Canada",
+          "pre_wait": {
+            "condition": "options_count_greater_than",
+            "locator": {
+              "by": "id",
+              "value": "country"
+            },
+            "minimum_count": 1,
+            "timeout": 15
+          },
+          "post_wait": {
+            "condition": "options_count_greater_than",
+            "locator": {
+              "by": "id",
+              "value": "province"
+            },
+            "minimum_count": 1,
+            "timeout": 15,
+            "require_ajax_idle": true
+          }
+        },
+        {
+          "name": "Province",
+          "type": "select",
+          "action": "select_by_text",
+          "locator": {
+            "by": "id",
+            "value": "province"
+          },
+          "value": "Ontario"
+        },
+        {
+          "name": "Subscribe to Newsletter",
+          "type": "checkbox",
+          "action": "check",
+          "locator": {
+            "by": "id",
+            "value": "newsletter"
+          }
+        },
+        {
+          "name": "Continue",
+          "type": "button",
+          "action": "click",
+          "locator": {
+            "by": "css_selector",
+            "value": "button.next"
+          },
+          "post_wait": {
+            "condition": "visible",
+            "locator": {
+              "by": "id",
+              "value": "employment-form"
+            },
+            "timeout": 20,
+            "spinner_locator": {
+              "by": "css_selector",
+              "value": ".loading-spinner"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

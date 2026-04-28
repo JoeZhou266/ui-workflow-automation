@@ -85,7 +85,10 @@ ui-workflow-automation/
 ├── testdata/
 │   └── workflows/              # Workflow JSON files
 │       ├── sample_workflow.json
-│       └── onboarding_workflow.json
+│       ├── onboarding_workflow.json
+│       ├── tabs/               # Reusable tab definitions (referenced via $ref)
+│       ├── pages/              # Reusable page definitions (referenced via $ref)
+│       └── sections/           # Reusable section definitions (referenced via $ref)
 ├── tests/
 │   ├── conftest.py             # Pytest fixtures and CLI options
 │   ├── unit/                   # Unit tests (no browser)
@@ -230,6 +233,49 @@ A workflow file describes the full test execution tree. The engine iterates ever
   ]
 }
 ```
+
+### Splitting workflows with `$ref` file references
+
+Large workflows can be split across multiple JSON files. Any object that would inline a tab, page, or section can be replaced with a `$ref` pointer to a standalone JSON file:
+
+```json
+{ "$ref": "./relative/path/to/file.json" }
+```
+
+The loader resolves `$ref` nodes recursively before validation, so the rest of the framework is unaware of the split. Paths are always relative to the **file that declares them** — not the root workflow file — so nested refs work correctly across subdirectories.
+
+**Example — `sample_workflow.json` (root):**
+```json
+{
+  "workflow_name": "Sample Workflow",
+  "start_url": "https://the-internet.herokuapp.com",
+  "tabs": [
+    { "$ref": "./tabs/form_demo_tab.json" },
+    { "$ref": "./tabs/checkboxes_tab.json" },
+    { "$ref": "./tabs/dropdown_tab.json" }
+  ]
+}
+```
+
+**Example — `tabs/profile_tab.json` (tab file referencing page files):**
+```json
+{
+  "name": "Profile",
+  "order": 1,
+  "pages": [
+    { "$ref": "../pages/basic_info_page.json" },
+    { "$ref": "../pages/employment_info_page.json" }
+  ]
+}
+```
+
+**Rules:**
+- A `$ref` object must contain only the `$ref` key — no sibling keys.
+- Works at any depth: tabs, pages, sections, or any nested object/list.
+- Missing files raise `WorkflowValidationError` with the file path in the message.
+- Circular references raise `WorkflowValidationError`.
+
+---
 
 ### Full field reference
 
