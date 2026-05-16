@@ -346,7 +346,7 @@ def test_switch_to_latest_window_action(self, executor, mock_page):
 
 **All other claims in this document were verified by reading source files or via Python introspection of the installed Selenium 4.36.0 in this session.**
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should `SWITCH_TO_LATEST_WINDOW` be a separate action type?**
    - What we know: Two patterns exist — (a) explicit open-and-switch via `switch_to.new_window()`, (b) click-triggered asynchronous window open needing a post-click switch. Phase 3 success criteria says "opens/switches to a new browser tab or window."

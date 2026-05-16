@@ -9,7 +9,7 @@ A data-driven Selenium test automation framework in Python 3.9.13. Workflows are
 - [Requirements](#requirements)
 - [Installation](#installation)
 - [Project Structure](#project-structure)
-- [Quick Start](#quick-start)
+  - [Quick Start](#quick-start)
 - [Configuration](#configuration)
 - [Writing Workflow JSON](#writing-workflow-json)
 - [Supported Element Types and Actions](#supported-element-types-and-actions)
