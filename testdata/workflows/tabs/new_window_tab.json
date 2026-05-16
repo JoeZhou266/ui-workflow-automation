@@ -1,0 +1,43 @@
+{
+  "workflow_name": "New Window Tab Fixture",
+  "start_url": "about:blank",
+  "tabs": [
+    {
+      "name": "Main Tab",
+      "order": 1,
+      "pages": [
+        {
+          "name": "Main Page",
+          "order": 1,
+          "path": "",
+          "sections": [
+            {
+              "name": "Window Actions",
+              "order": 1,
+              "elements": [
+                {
+                  "name": "Open New Window",
+                  "type": "button",
+                  "action": "switch_to_new_window",
+                  "locator": { "by": "id", "value": "_window" }
+                },
+                {
+                  "name": "Open New Tab",
+                  "type": "button",
+                  "action": "switch_to_new_tab",
+                  "locator": { "by": "id", "value": "_window" }
+                },
+                {
+                  "name": "Switch To Latest Window",
+                  "type": "button",
+                  "action": "switch_to_latest_window",
+                  "locator": { "by": "id", "value": "_window" }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
