@@ -15,6 +15,8 @@ class ElementType(str, Enum):
     LINK = "link"
     LABEL = "label"
     FILE = "file"
+    NUMBER = "number"
+    EMAIL = "email"
 
 
 class ActionType(str, Enum):
@@ -25,6 +27,7 @@ class ActionType(str, Enum):
     SELECT_BY_INDEX = "select_by_index"
     CHECK = "check"
     UNCHECK = "uncheck"
+    SELECT_RADIO = "select_radio"
     UPLOAD = "upload"
     ASSERT_ONLY = "assert_only"
     NOOP = "noop"
