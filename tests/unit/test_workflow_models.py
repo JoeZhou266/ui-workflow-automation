@@ -1,8 +1,14 @@
 """Unit tests for Pydantic workflow models — no browser required."""
 from __future__ import annotations
 
+import pydantic
 import pytest
 from pydantic import ValidationError
+
+_PYDANTIC_V2 = int(pydantic.VERSION.split(".")[0]) >= 2
+requires_pydantic_v2 = pytest.mark.skipif(
+    not _PYDANTIC_V2, reason="Pydantic v2 required for model_validate"
+)
 
 from src.models.workflow_models import (
     ElementDefinition,
@@ -205,17 +211,20 @@ class TestWorkflowDefinition:
             "tabs": [],
         }
 
+    @requires_pydantic_v2
     def test_minimal_workflow(self):
         wf = WorkflowDefinition.model_validate(self._minimal())
         assert wf.workflow_name == "Test WF"
         assert wf.tabs == []
 
+    @requires_pydantic_v2
     def test_empty_start_url_raises(self):
         data = self._minimal()
         data["start_url"] = "   "
         with pytest.raises(ValidationError):
             WorkflowDefinition.model_validate(data)
 
+    @requires_pydantic_v2
     def test_ordered_tabs(self):
         data = self._minimal()
         data["tabs"] = [
@@ -227,10 +236,12 @@ class TestWorkflowDefinition:
         names = [t.name for t in wf.ordered_tabs]
         assert names == ["A", "M", "Z"]
 
+    @requires_pydantic_v2
     def test_metadata_optional(self):
         wf = WorkflowDefinition.model_validate(self._minimal())
         assert wf.metadata is None
 
+    @requires_pydantic_v2
     def test_description_optional(self):
         wf = WorkflowDefinition.model_validate(self._minimal())
         assert wf.description is None
