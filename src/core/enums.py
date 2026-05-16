@@ -31,6 +31,9 @@ class ActionType(str, Enum):
     UPLOAD = "upload"
     ASSERT_ONLY = "assert_only"
     NOOP = "noop"
+    SWITCH_TO_NEW_WINDOW = "switch_to_new_window"
+    SWITCH_TO_NEW_TAB = "switch_to_new_tab"
+    SWITCH_TO_LATEST_WINDOW = "switch_to_latest_window"
 
 
 class WaitConditionType(str, Enum):
