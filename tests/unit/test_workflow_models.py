@@ -136,6 +136,21 @@ class TestElementDefinition:
             )
             assert el.type == etype
 
+    def test_window_switch_action_types_are_valid(self):
+        """Pydantic must accept all three window-switch ActionType values."""
+        for atype in (
+            ActionType.SWITCH_TO_NEW_WINDOW,
+            ActionType.SWITCH_TO_NEW_TAB,
+            ActionType.SWITCH_TO_LATEST_WINDOW,
+        ):
+            el = ElementDefinition(
+                name="Win",
+                type=ElementType.BUTTON,
+                action=atype,
+                locator=self._make_locator(),
+            )
+            assert el.action == atype
+
 
 # ---------------------------------------------------------------------------
 # SectionDefinition

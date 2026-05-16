@@ -273,6 +273,38 @@ class BasePage:
         if not el.is_selected():
             el.click()
 
+    def open_new_window(self, type_hint: str = "window") -> None:
+        """Open a new browser window or tab and switch focus to it.
+
+        Args:
+            type_hint: 'window' for a new OS window, 'tab' for a new tab.
+                       Passed directly to driver.switch_to.new_window().
+        """
+        self._driver.switch_to.new_window(type_hint)
+
+    def switch_to_latest_window(self, timeout: int = 10) -> None:
+        """Wait for a new window to appear and switch focus to it.
+
+        Use this after an action (e.g. clicking a link with target="_blank")
+        that opens a new window asynchronously. Snapshots handles before
+        waiting, uses EC.new_window_is_opened to avoid polling with sleep,
+        then switches to the new handle identified by set difference.
+
+        Args:
+            timeout: Seconds to wait for the new window to appear.
+        """
+        from selenium.webdriver.support import expected_conditions as EC
+
+        old_handles = set(self._driver.window_handles)
+        self._wm.wait_for(
+            EC.new_window_is_opened(list(old_handles)),
+            "new window to appear",
+            timeout=timeout,
+        )
+        new_handles = set(self._driver.window_handles) - old_handles
+        new_handle = new_handles.pop()
+        self._driver.switch_to.window(new_handle)
+
     def scroll_into_view(self, element: WebElement) -> None:
         """Scroll the element into the viewport via JavaScript."""
         self._driver.execute_script(
