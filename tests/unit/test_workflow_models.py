@@ -124,6 +124,18 @@ class TestElementDefinition:
                 retry_count=11,  # max is 10
             )
 
+    def test_number_and_email_element_types_are_valid(self):
+        """ElementType.NUMBER and EMAIL must be accepted by Pydantic validation."""
+        for etype in (ElementType.NUMBER, ElementType.EMAIL):
+            el = ElementDefinition(
+                name="Field",
+                type=etype,
+                action=ActionType.INPUT,
+                locator=self._make_locator(),
+                value="test",
+            )
+            assert el.type == etype
+
 
 # ---------------------------------------------------------------------------
 # SectionDefinition

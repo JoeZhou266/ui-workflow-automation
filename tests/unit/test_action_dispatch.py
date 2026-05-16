@@ -134,6 +134,53 @@ class TestElementActions:
         with pytest.raises(ElementActionError, match="No file path"):
             executor.execute(el, value=None)
 
+    def test_select_radio_action(self, executor, mock_page):
+        el = _make_element(etype=ElementType.RADIO, action=ActionType.SELECT_RADIO)
+        executor.execute(el)
+        mock_page.select_radio.assert_called_once_with(el.locator, el.name)
+
+    def test_select_radio_already_selected(self):
+        """BasePage.select_radio must not click an already-selected radio."""
+        from src.ui.base_page import BasePage
+
+        # Case 1: already selected -> no click
+        already_selected_el = MagicMock()
+        already_selected_el.is_selected.return_value = True
+        page = MagicMock(spec=BasePage)
+        page.wait_for_visible.return_value = already_selected_el
+        BasePage.select_radio(page, _make_locator(), "radio-1")
+        already_selected_el.click.assert_not_called()
+
+        # Case 2: not selected -> exactly one click
+        not_selected_el = MagicMock()
+        not_selected_el.is_selected.return_value = False
+        page2 = MagicMock(spec=BasePage)
+        page2.wait_for_visible.return_value = not_selected_el
+        BasePage.select_radio(page2, _make_locator(), "radio-2")
+        not_selected_el.click.assert_called_once()
+
+    def test_number_input_action(self, executor, mock_page):
+        el = _make_element(
+            etype=ElementType.NUMBER,
+            action=ActionType.INPUT,
+            value="42",
+        )
+        executor.execute(el, value="42")
+        mock_page.clear_and_type.assert_called_once()
+        args = mock_page.clear_and_type.call_args
+        assert args[0][1] == "42"
+
+    def test_email_input_action(self, executor, mock_page):
+        el = _make_element(
+            etype=ElementType.EMAIL,
+            action=ActionType.INPUT,
+            value="user@example.com",
+        )
+        executor.execute(el, value="user@example.com")
+        mock_page.clear_and_type.assert_called_once()
+        args = mock_page.clear_and_type.call_args
+        assert args[0][1] == "user@example.com"
+
 
 class TestActionFactory:
     def test_pre_wait_called_before_action(self, mock_page, mock_wm):

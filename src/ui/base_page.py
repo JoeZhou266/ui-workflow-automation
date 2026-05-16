@@ -267,6 +267,12 @@ class BasePage:
         if el.is_selected():
             el.click()
 
+    def select_radio(self, locator: LocatorDefinition, name: str = "") -> None:
+        """Select a radio button if not already selected."""
+        el = self.wait_for_visible(locator)
+        if not el.is_selected():
+            el.click()
+
     def scroll_into_view(self, element: WebElement) -> None:
         """Scroll the element into the viewport via JavaScript."""
         self._driver.execute_script(
