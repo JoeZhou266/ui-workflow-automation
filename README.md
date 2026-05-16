@@ -9,7 +9,7 @@ A data-driven Selenium test automation framework in Python 3.9.13. Workflows are
 - [Requirements](#requirements)
 - [Installation](#installation)
 - [Project Structure](#project-structure)
-- [Quick Start](#quick-start)
+  - [Quick Start](#quick-start)
 - [Configuration](#configuration)
 - [Writing Workflow JSON](#writing-workflow-json)
 - [Supported Element Types and Actions](#supported-element-types-and-actions)
@@ -275,6 +275,30 @@ The loader resolves `$ref` nodes recursively before validation, so the rest of t
 - Missing files raise `WorkflowValidationError` with the file path in the message.
 - Circular references raise `WorkflowValidationError`.
 
+### Opening and switching browser windows/tabs
+
+Use `switch_to_new_window` or `switch_to_new_tab` to programmatically open a new window or tab and immediately shift WebDriver focus to it. Use `switch_to_latest_window` when a link click or form submission opens a new window asynchronously — the action waits for the new handle to appear, then switches to it. All subsequent elements in the workflow execute inside the new window context.
+
+```json
+{
+  "name": "Open Report in New Window",
+  "type": "button",
+  "action": "switch_to_new_window",
+  "locator": { "by": "id", "value": "_window" }
+}
+```
+
+```json
+{
+  "name": "Switch to Popup Opened by Link Click",
+  "type": "button",
+  "action": "switch_to_latest_window",
+  "locator": { "by": "id", "value": "_window" }
+}
+```
+
+> **Sentinel locator:** Window-switch actions do not interact with any DOM element. The `locator` field is required by the schema — use `{ "by": "id", "value": "_window" }` as a conventional no-op placeholder. The dispatch layer ignores it.
+
 ---
 
 ### Full field reference
@@ -357,20 +381,24 @@ The loader resolves `$ref` nodes recursively before validation, so the rest of t
 
 ### Element Types
 
-`text` · `textarea` · `button` · `checkbox` · `radio` · `select` · `multiselect` · `date` · `link` · `label` · `file`
+`text` · `textarea` · `number` · `email` · `button` · `checkbox` · `radio` · `select` · `multiselect` · `date` · `link` · `label` · `file`
 
 ### Action Types
 
 | Action | Description |
 |---|---|
-| `input` | Clear field and type text |
+| `input` | Clear field and type text (also handles `number` and `email` inputs) |
 | `click` | Smart click (scroll into view, wait for clickable, retry on intercept) |
 | `select_by_text` | Select a `<select>` option by visible text |
 | `select_by_value` | Select a `<select>` option by `value` attribute |
 | `select_by_index` | Select a `<select>` option by zero-based index |
 | `check` | Check a checkbox if not already checked |
 | `uncheck` | Uncheck a checkbox if currently checked |
+| `select_radio` | Select a radio button if not already selected |
 | `upload` | Set a file path on a file input element |
+| `switch_to_new_window` | Open a new browser window and switch focus to it |
+| `switch_to_new_tab` | Open a new browser tab and switch focus to it |
+| `switch_to_latest_window` | Wait for a new window/tab to appear (e.g. opened by a link click) and switch focus to it |
 | `assert_only` | Run assertions without performing an interaction |
 | `noop` | Skip this element entirely |
 

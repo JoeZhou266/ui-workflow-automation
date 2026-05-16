@@ -76,6 +76,17 @@ class ElementActions:
             elif action == ActionType.UPLOAD:
                 self._do_upload(element, value)
 
+            elif action == ActionType.SWITCH_TO_NEW_WINDOW:
+                # Opens a blank OS window programmatically; element.locator is not used.
+                self._page.open_new_window("window")
+
+            elif action == ActionType.SWITCH_TO_NEW_TAB:
+                # Opens a blank tab programmatically; element.locator is not used.
+                self._page.open_new_window("tab")
+
+            elif action == ActionType.SWITCH_TO_LATEST_WINDOW:
+                self._page.switch_to_latest_window()
+
             else:
                 raise ElementActionError(
                     f"Unhandled action '{action.value}'", element_name=element.name
