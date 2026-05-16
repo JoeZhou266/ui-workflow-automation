@@ -70,6 +70,9 @@ class ElementActions:
             elif action == ActionType.UNCHECK:
                 self._page.uncheck(element.locator, element.name)
 
+            elif action == ActionType.SELECT_RADIO:
+                self._page.select_radio(element.locator, element.name)
+
             elif action == ActionType.UPLOAD:
                 self._do_upload(element, value)
 
