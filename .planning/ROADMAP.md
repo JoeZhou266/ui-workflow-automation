@@ -47,7 +47,11 @@ Plans:
   2. The framework focuses (brings to foreground) the newly opened Chrome window
   3. Subsequent page/section/element actions in the workflow execute in the new window context
   4. Unit tests cover tab-switch dispatch and window focus handling
-**Plans**: Not planned yet
+**Plans**: 2 plans
+
+Plans:
+- [ ] 03-01-PLAN.md — Add SWITCH_TO_NEW_WINDOW/TAB/LATEST_WINDOW to ActionType; add BasePage.open_new_window() and switch_to_latest_window(); write test_base_page_window.py (GREEN) and three RED dispatch stubs in test_action_dispatch.py
+- [ ] 03-02-PLAN.md — Wire three dispatch branches in ElementActions.execute(); create testdata/workflows/tabs/new_window_tab.json fixture; all tests go GREEN
 
 ## Progress
 
@@ -55,4 +59,4 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Support Nested JSON | 2/2 | Complete | 2026-05-15 |
 | 2. Support More Web Elements | 2/2 | Complete | 2026-05-16 |
-| 3. Support Tab Switching and New Window Focus | 0/? | Not started | - |
+| 3. Support Tab Switching and New Window Focus | 0/2 | Not started | - |
