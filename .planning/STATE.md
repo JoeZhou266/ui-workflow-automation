@@ -48,6 +48,7 @@ None yet.
 
 - Phase 1 added: Support Nested JSON ($ref resolution)
 - Phase 2 added: Support checkBox, radio, number, email web elements in element_actions.py
+- Phase 3 added: Support switching tab, then focusing on it in new window of chrome browser as workflow JSON definition
 
 ## Session Continuity
 
