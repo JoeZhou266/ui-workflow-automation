@@ -302,6 +302,11 @@ class BasePage:
             timeout=timeout,
         )
         new_handles = set(self._driver.window_handles) - old_handles
+        if not new_handles:
+            raise ElementActionError(
+                "No new window handle found after waiting",
+                element_name="switch_to_latest_window",
+            )
         new_handle = new_handles.pop()
         self._driver.switch_to.window(new_handle)
 
