@@ -8,7 +8,7 @@ Data-driven Selenium automation framework that reads workflow definitions from J
 
 - [x] **Phase 1: Support Nested JSON** - `$ref` file-reference resolution in workflow loader
 - [x] **Phase 2: Support More Web Elements** - checkBox, radio, number, email element actions
-- [ ] **Phase 3: Support Tab Switching and New Window Focus** - switch tab / new window via workflow JSON
+- [x] **Phase 3: Support Tab Switching and New Window Focus** - switch tab / new window via workflow JSON
 
 ## Phase Details
 
@@ -50,8 +50,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 03-01-PLAN.md — Add SWITCH_TO_NEW_WINDOW/TAB/LATEST_WINDOW to ActionType; add BasePage.open_new_window() and switch_to_latest_window(); write test_base_page_window.py (GREEN) and three RED dispatch stubs in test_action_dispatch.py
-- [ ] 03-02-PLAN.md — Wire three dispatch branches in ElementActions.execute(); create testdata/workflows/tabs/new_window_tab.json fixture; all tests go GREEN
+- [x] 03-01-PLAN.md — Add SWITCH_TO_NEW_WINDOW/TAB/LATEST_WINDOW to ActionType; add BasePage.open_new_window() and switch_to_latest_window(); write test_base_page_window.py (GREEN) and three RED dispatch stubs in test_action_dispatch.py
+- [x] 03-02-PLAN.md — Wire three dispatch branches in ElementActions.execute(); create testdata/workflows/tabs/new_window_tab.json fixture; all tests go GREEN
 
 ## Progress
 
@@ -59,4 +59,4 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Support Nested JSON | 2/2 | Complete | 2026-05-15 |
 | 2. Support More Web Elements | 2/2 | Complete | 2026-05-16 |
-| 3. Support Tab Switching and New Window Focus | 0/2 | Not started | - |
+| 3. Support Tab Switching and New Window Focus | 2/2 | Complete | 2026-05-15 |
