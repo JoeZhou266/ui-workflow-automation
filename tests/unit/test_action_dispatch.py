@@ -181,6 +181,21 @@ class TestElementActions:
         args = mock_page.clear_and_type.call_args
         assert args[0][1] == "user@example.com"
 
+    def test_switch_to_new_window_action(self, executor, mock_page):
+        el = _make_element(etype=ElementType.BUTTON, action=ActionType.SWITCH_TO_NEW_WINDOW)
+        executor.execute(el)
+        mock_page.open_new_window.assert_called_once_with("window")
+
+    def test_switch_to_new_tab_action(self, executor, mock_page):
+        el = _make_element(etype=ElementType.BUTTON, action=ActionType.SWITCH_TO_NEW_TAB)
+        executor.execute(el)
+        mock_page.open_new_window.assert_called_once_with("tab")
+
+    def test_switch_to_latest_window_action(self, executor, mock_page):
+        el = _make_element(etype=ElementType.BUTTON, action=ActionType.SWITCH_TO_LATEST_WINDOW)
+        executor.execute(el)
+        mock_page.switch_to_latest_window.assert_called_once()
+
 
 class TestActionFactory:
     def test_pre_wait_called_before_action(self, mock_page, mock_wm):
