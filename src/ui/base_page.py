@@ -267,9 +267,21 @@ class BasePage:
         if el.is_selected():
             el.click()
 
-    def select_radio(self, locator: LocatorDefinition, name: str = "") -> None:
-        """Select a radio button if not already selected."""
-        el = self.wait_for_visible(locator)
+    def select_radio(
+        self, locator: LocatorDefinition, name: str = "", value: str = ""
+    ) -> None:
+        """Select a radio button.
+
+        When ``value`` is set and ``locator.by == "name"``, locates the radio
+        element via ``input[type="radio"][name="..."][value="..."]`` CSS selector.
+        Otherwise uses ``locator`` directly.
+        """
+        if value and locator.by == "name":
+            css = f'input[type="radio"][name="{locator.value}"][value="{value}"]'
+            target: LocatorDefinition = LocatorDefinition(by="css_selector", value=css)
+        else:
+            target = locator
+        el = self.wait_for_visible(target)
         if not el.is_selected():
             el.click()
 

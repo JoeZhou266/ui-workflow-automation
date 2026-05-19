@@ -137,7 +137,7 @@ class TestElementActions:
     def test_select_radio_action(self, executor, mock_page):
         el = _make_element(etype=ElementType.RADIO, action=ActionType.SELECT_RADIO)
         executor.execute(el)
-        mock_page.select_radio.assert_called_once_with(el.locator, el.name)
+        mock_page.select_radio.assert_called_once_with(el.locator, el.name, "")
 
     def test_select_radio_already_selected(self):
         """BasePage.select_radio must not click an already-selected radio."""

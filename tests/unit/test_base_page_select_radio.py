@@ -90,3 +90,52 @@ class TestSelectRadio:
         result = page.select_radio(locator, name="My Radio")
 
         assert result is None
+
+    def test_name_and_value_builds_css_selector(self):
+        """When locator.by=='name' and value is set, wait_for_visible receives a
+        CSS selector locator: input[type="radio"][name="..."][value="..."]."""
+        from src.models.workflow_models import LocatorDefinition
+
+        page = _make_page()
+        mock_el = MagicMock()
+        mock_el.is_selected.return_value = False
+        captured = {}
+
+        def capture_locator(loc):
+            captured["loc"] = loc
+            return mock_el
+
+        page.wait_for_visible = capture_locator
+
+        locator = _make_locator(by="name", value="gender")
+        page.select_radio(locator, value="female")
+
+        assert captured["loc"].by == "css_selector"
+        assert 'name="gender"' in captured["loc"].value
+        assert 'value="female"' in captured["loc"].value
+        assert 'input[type="radio"]' in captured["loc"].value
+        mock_el.click.assert_called_once()
+
+    def test_name_locator_without_value_uses_locator_directly(self):
+        """When locator.by=='name' but value is empty, uses the original locator."""
+        page = _make_page()
+        mock_el = MagicMock()
+        mock_el.is_selected.return_value = False
+        page.wait_for_visible = MagicMock(return_value=mock_el)
+
+        locator = _make_locator(by="name", value="gender")
+        page.select_radio(locator)
+
+        page.wait_for_visible.assert_called_once_with(locator)
+
+    def test_non_name_locator_with_value_uses_locator_directly(self):
+        """When locator.by!='name', value param is ignored and original locator is used."""
+        page = _make_page()
+        mock_el = MagicMock()
+        mock_el.is_selected.return_value = False
+        page.wait_for_visible = MagicMock(return_value=mock_el)
+
+        locator = _make_locator(by="id", value="radio-female")
+        page.select_radio(locator, value="female")
+
+        page.wait_for_visible.assert_called_once_with(locator)
