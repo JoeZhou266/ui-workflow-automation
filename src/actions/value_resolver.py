@@ -92,6 +92,10 @@ def resolve_dynamic_value(value: str) -> str:
         ValueError: If the token matches the placeholder pattern but is not
             registered in :data:`PLACEHOLDER_REGISTRY`.
     """
+    if not isinstance(value, str):
+        raise TypeError(
+            f"resolve_dynamic_value expects a str, got {type(value).__name__!r}"
+        )
     match = _PLACEHOLDER_PATTERN.match(value)
     if not match:
         return value
