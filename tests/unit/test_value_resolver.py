@@ -112,6 +112,14 @@ class TestPlaceholderRegistry:
         with pytest.raises(ValueError, match="Unknown placeholder"):
             resolve_dynamic_value("${nonexistent_key}")
 
+    def test_non_string_input_raises_type_error(self):
+        with pytest.raises(TypeError):
+            resolve_dynamic_value(None)  # type: ignore[arg-type]
+
+    def test_non_string_int_raises_type_error(self):
+        with pytest.raises(TypeError):
+            resolve_dynamic_value(42)  # type: ignore[arg-type]
+
     def test_custom_generator_via_patch(self):
         with patch.dict(PLACEHOLDER_REGISTRY, {"custom_key": lambda: "fixed_value"}):
             assert resolve_dynamic_value("${custom_key}") == "fixed_value"
