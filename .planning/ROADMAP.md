@@ -9,6 +9,7 @@ Data-driven Selenium automation framework that reads workflow definitions from J
 - [x] **Phase 1: Support Nested JSON** - `$ref` file-reference resolution in workflow loader
 - [x] **Phase 2: Support More Web Elements** - checkBox, radio, number, email element actions
 - [x] **Phase 3: Support Tab Switching and New Window Focus** - switch tab / new window via workflow JSON
+- [ ] **Phase 4: Support Dynamic Placeholder Expansion** - registry-based ${placeholder} expansion in workflow JSON values
 
 ## Phase Details
 
@@ -53,6 +54,21 @@ Plans:
 - [x] 03-01-PLAN.md — Add SWITCH_TO_NEW_WINDOW/TAB/LATEST_WINDOW to ActionType; add BasePage.open_new_window() and switch_to_latest_window(); write test_base_page_window.py (GREEN) and three RED dispatch stubs in test_action_dispatch.py
 - [x] 03-02-PLAN.md — Wire three dispatch branches in ElementActions.execute(); create testdata/workflows/tabs/new_window_tab.json fixture; all tests go GREEN
 
+### Phase 4: Support Dynamic Placeholder Expansion
+**Goal**: Enable workflow JSON values to contain `${placeholder}` tokens that are resolved at action-dispatch time via a registry of generator functions
+**Depends on**: Phase 3
+**Success Criteria** (what must be TRUE):
+  1. A `PLACEHOLDER_REGISTRY` maps token names to generator functions
+  2. `resolve_dynamic_value()` detects `${placeholder}` patterns and calls the registered generator
+  3. `JsonLoader` passes every element value through `resolve_dynamic_value()`
+  4. `generate_sin_number()` returns a valid random Canadian SIN
+  5. `generate_first_name()` and `generate_last_name()` return random names
+  6. Unit tests cover resolution, passthrough (no placeholder), and unknown placeholder behavior
+**Plans**: 1 plan
+
+Plans:
+- [ ] 04-01-PLAN.md — Write test stubs RED (Wave 0), implement PLACEHOLDER_REGISTRY + generator functions + resolve_dynamic_value() in value_resolver.py, wire ValueResolver._resolve_string(), all tests GREEN
+
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
@@ -60,3 +76,4 @@ Plans:
 | 1. Support Nested JSON | 2/2 | Complete | 2026-05-15 |
 | 2. Support More Web Elements | 2/2 | Complete | 2026-05-16 |
 | 3. Support Tab Switching and New Window Focus | 2/2 | Complete | 2026-05-15 |
+| 4. Support Dynamic Placeholder Expansion | 0/1 | Not started | — |
