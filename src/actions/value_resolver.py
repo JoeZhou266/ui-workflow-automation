@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import random
 import re
+import secrets
 from typing import Any, Callable, Dict, Optional
 
 # ---------------------------------------------------------------------------
@@ -28,18 +29,23 @@ _LAST_NAMES = [
     "White", "Harris", "Clark", "Ramirez", "Lewis", "Robinson",
 ]
 
+def generate_random_number(length = 7) -> str:
+    """Return a random number with a specified number of digits."""
+    return ''.join(str(secrets.randbelow(10)) for _ in range(length))
 
-def generate_sin_number() -> str:
-    """Return a 9-digit string that passes the Canadian SIN Luhn mod-10 check.
+# ------------------------------------------------------------------------------
+# SIN number state management – for chunked three-field SIN input
+# ------------------------------------------------------------------------------
 
-    First digit is 1–8 (digits 0 and 9 are reserved for CRA and temporary
-    residents respectively and are excluded).  The check digit is computed
-    using the Luhn algorithm: double digits at odd indices (0-indexed from
-    the left of the 8-prefix), subtract 9 if the doubled value exceeds 9,
-    sum all values, then append ``(10 - total % 10) % 10``.
-    """
-    first = random.randint(1, 8)
-    rest = [random.randint(0, 9) for _ in range(7)]
+_sin_state: Dict[str, Any] = {
+    "current_sin": None,
+    "call_count": 0,
+}
+
+def _generate_sin_full() -> str:  # 1 usage  new*
+    """Generate and store a complete 9-digit SIN, reset state."""
+    first = random.randint(a=1, b=8)
+    rest = [random.randint(a=0, b=9) for _ in range(7)]
     digits_8 = [first] + rest
     total = 0
     for i, d in enumerate(digits_8):
@@ -49,7 +55,35 @@ def generate_sin_number() -> str:
         else:
             total += d
     check = (10 - (total % 10)) % 10
-    return "".join(str(d) for d in digits_8 + [check])
+    full_sin = "".join(str(d) for d in digits_8 + [check])
+    _sin_state["current_sin"] = full_sin
+    _sin_state["call_count"] = 0
+    return full_sin
+
+def generate_sin_number() -> str:  # 1 usage  new*
+    """Return successive 3-digit chunks of a 9-digit SIN across three calls.
+
+    On the first call, generates a complete valid 9-digit SIN and returns digits 0-2.
+    On the second call, returns digits 3-5 of the same SIN.
+    On the third call, returns digits 6-8 of the same SIN.
+    After the third call, the next call will generate a new SIN and restart the cycle.
+
+    Each generated SIN passes the Canadian SIN Luhn mod-10 check.
+    First digit is 1-8 (digits 0 and 9 are reserved). Check digit is computed
+    using the Luhn algorithm: double digits at odd indices (0-indexed from the
+    left of the 8-prefix), subtract 9 if the doubled value exceeds 9, sum all
+    values, then append ``(10 - total % 10) % 10``.
+    """
+    if _sin_state["current_sin"] is None or _sin_state["call_count"] >= 3:
+        _generate_sin_full()
+
+    sin = _sin_state["current_sin"]
+    chunk_index = _sin_state["call_count"]
+    start_idx = chunk_index * 3
+    chunk = sin[start_idx : start_idx + 3]
+    _sin_state["call_count"] += 1
+
+    return chunk
 
 
 def generate_first_name() -> str:
@@ -72,6 +106,7 @@ PLACEHOLDER_REGISTRY: Dict[str, Callable[[], str]] = {
     "sin_number": generate_sin_number,
     "first_name": generate_first_name,
     "last_name": generate_last_name,
+    "random_number": generate_random_number,
 }
 
 
