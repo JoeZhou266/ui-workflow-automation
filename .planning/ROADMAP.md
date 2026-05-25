@@ -10,6 +10,7 @@ Data-driven Selenium automation framework that reads workflow definitions from J
 - [x] **Phase 2: Support More Web Elements** - checkBox, radio, number, email element actions
 - [x] **Phase 3: Support Tab Switching and New Window Focus** - switch tab / new window via workflow JSON
 - [ ] **Phase 4: Support Dynamic Placeholder Expansion** - registry-based ${placeholder} expansion in workflow JSON values
+- [ ] **Phase 5: Support wait_seconds in WaitConditionType** - fixed-duration pause in pre_wait/post_wait via a `wait_seconds` condition with a configurable seconds parameter
 
 ## Phase Details
 
@@ -69,6 +70,17 @@ Plans:
 Plans:
 - [ ] 04-01-PLAN.md — Write test stubs RED (Wave 0), implement PLACEHOLDER_REGISTRY + generator functions + resolve_dynamic_value() in value_resolver.py, wire ValueResolver._resolve_string(), all tests GREEN
 
+### Phase 5: Support wait_seconds in WaitConditionType
+**Goal**: Add a `wait_seconds` condition to `WaitConditionType` so workflow JSON can declare a fixed-duration pause in `pre_wait` / `post_wait` without requiring a locator or element condition
+**Depends on**: Phase 4
+**Success Criteria** (what must be TRUE):
+  1. `WaitConditionType.WAIT_SECONDS` enum value exists
+  2. `WaitConditionDefinition` carries a `seconds` parameter (to be determined during discuss)
+  3. `WaitManager._dispatch()` handles `WAIT_SECONDS` by sleeping for the configured duration
+  4. Sleep is isolated in a dedicated helper, logged at WARNING with reason
+  5. Unit tests cover the new condition type via pre_wait and post_wait
+**Plans**: TBD
+
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
@@ -77,3 +89,4 @@ Plans:
 | 2. Support More Web Elements | 2/2 | Complete | 2026-05-16 |
 | 3. Support Tab Switching and New Window Focus | 2/2 | Complete | 2026-05-15 |
 | 4. Support Dynamic Placeholder Expansion | 0/1 | Not started | — |
+| 5. Support wait_seconds in WaitConditionType | 0/? | Not started | — |
