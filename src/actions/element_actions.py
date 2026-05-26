@@ -89,6 +89,10 @@ class ElementActions:
             elif action == ActionType.SWITCH_TO_LATEST_WINDOW:
                 self._page.switch_to_latest_window()
 
+            elif action == ActionType.EXECUTE_JS_SCRIPT:
+                # element.locator is not used; JS string is read from value.
+                self._page._driver.execute_script(str(value))
+
             else:
                 raise ElementActionError(
                     f"Unhandled action '{action.value}'", element_name=element.name

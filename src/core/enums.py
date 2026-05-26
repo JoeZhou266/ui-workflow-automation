@@ -17,6 +17,7 @@ class ElementType(str, Enum):
     FILE = "file"
     NUMBER = "number"
     EMAIL = "email"
+    SCRIPT = "script"   # Phase 6: execute_js_script action type
 
 
 class ActionType(str, Enum):
@@ -34,6 +35,7 @@ class ActionType(str, Enum):
     SWITCH_TO_NEW_WINDOW = "switch_to_new_window"
     SWITCH_TO_NEW_TAB = "switch_to_new_tab"
     SWITCH_TO_LATEST_WINDOW = "switch_to_latest_window"
+    EXECUTE_JS_SCRIPT = "execute_js_script"   # Phase 6: execute arbitrary JS via element.value
 
 
 class WaitConditionType(str, Enum):
