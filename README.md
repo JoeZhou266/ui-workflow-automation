@@ -364,7 +364,7 @@ Use `switch_to_new_window` or `switch_to_new_tab` to programmatically open a new
 |---|---|---|---|
 | `condition` | string | `visible` | Wait condition type (see [Wait Conditions](#wait-condition-types)) |
 | `locator` | object | | Target element locator |
-| `timeout` | integer | `20` / `10` | Max seconds to wait |
+| `timeout` | integer | `20` / `10` | Max seconds to wait. For `wait_seconds`, reused as the sleep duration (1–300 s). |
 | `poll_frequency_ms` | integer | `500` | How often to check the condition |
 | `require_document_ready` | boolean | `true` | Wait for `document.readyState == complete` |
 | `require_ajax_idle` | boolean | `false` | Wait for jQuery AJAX requests to finish |
@@ -410,7 +410,7 @@ Use `switch_to_new_window` or `switch_to_new_tab` to programmatically open a new
 
 ## Synchronisation and Wait Strategies
 
-The framework is designed for AJAX-heavy applications. All waits are explicit — `time.sleep()` is never used as a synchronisation strategy.
+The framework is designed for AJAX-heavy applications. All waits are explicit — `time.sleep()` is never used as an ad-hoc synchronisation strategy. The sole exception is the `wait_seconds` condition, which provides a sanctioned, isolated, and logged fixed-duration pause for the rare case where a deterministic event cannot be detected.
 
 ### Wait priority order
 
@@ -442,6 +442,7 @@ The framework is designed for AJAX-heavy applications. All waits are explicit �
 | `spinner_gone` | Spinner element is invisible |
 | `overlay_gone` | Overlay element is invisible |
 | `enabled` | Element is visible and enabled |
+| `wait_seconds` | Fixed-duration pause — sleeps for `timeout` seconds unconditionally. No locator required. Use as a last resort when a deterministic event cannot be detected. |
 
 ### AJAX pattern examples
 
@@ -462,6 +463,22 @@ The framework is designed for AJAX-heavy applications. All waits are explicit �
   }
 }
 ```
+
+**Pause for 3 seconds after triggering an async background job (no detectable DOM event):**
+```json
+{
+  "name": "Trigger Export",
+  "type": "button",
+  "action": "click",
+  "locator": { "by": "id", "value": "exportButton" },
+  "post_wait": {
+    "condition": "wait_seconds",
+    "timeout": 3
+  }
+}
+```
+
+> **Note:** `wait_seconds` is a last resort. Prefer event-driven conditions (`visible`, `ajax_idle`, `text_contains`, etc.) whenever the application provides a detectable signal. A WARNING-level log line is emitted each time `wait_seconds` fires, making intentional pauses visible in logs.
 
 **Click Save and wait for success toast while spinner clears:**
 ```json
