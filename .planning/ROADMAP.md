@@ -96,7 +96,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 06-01-PLAN.md — TDD: RED tests for SCRIPT/EXECUTE_JS_SCRIPT enum membership and execute_script dispatch; GREEN implementation adds two enum values and elif branch in ElementActions.execute()
+- [x] 06-01-PLAN.md — TDD: RED tests for SCRIPT/EXECUTE_JS_SCRIPT enum membership and execute_script dispatch; GREEN implementation adds two enum values and elif branch in ElementActions.execute()
 
 ## Progress
 
