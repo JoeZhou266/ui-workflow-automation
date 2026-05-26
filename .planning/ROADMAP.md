@@ -11,6 +11,7 @@ Data-driven Selenium automation framework that reads workflow definitions from J
 - [x] **Phase 3: Support Tab Switching and New Window Focus** - switch tab / new window via workflow JSON
 - [x] **Phase 4: Support Dynamic Placeholder Expansion** - registry-based ${placeholder} expansion in workflow JSON values
 - [x] **Phase 5: Support wait_seconds in WaitConditionType** - fixed-duration pause in pre_wait/post_wait via a `wait_seconds` condition reusing the existing `timeout` field
+- [ ] **Phase 6: Support execute_js_script Action Type** - execute arbitrary JavaScript from workflow JSON via `element.value` field
 
 ## Phase Details
 
@@ -84,6 +85,16 @@ Plans:
 Plans:
 - [x] 05-01-PLAN.md — TDD: RED tests for WaitConditionDefinition + WaitManager dispatch of WAIT_SECONDS; GREEN implementation adds enum value, `_sleep_seconds()` helper, and dispatch branch
 
+### Phase 6: Support execute_js_script Action Type
+**Goal**: Add an `EXECUTE_JS_SCRIPT` action type so workflow JSON can execute arbitrary JavaScript in the browser via the `value` field of an `ElementDefinition`. No locator is required when used as a standalone script action.
+**Depends on**: Phase 5
+**Success Criteria** (what must be TRUE):
+  1. `ActionType.EXECUTE_JS_SCRIPT` enum value exists
+  2. `ElementActions.execute()` dispatches `EXECUTE_JS_SCRIPT` by calling `driver.execute_script(element.value)`
+  3. The `value` field carries the JavaScript string to execute
+  4. Unit tests cover successful dispatch and verify `execute_script` is called with the correct JS
+**Plans**: 0 plans
+
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
@@ -93,3 +104,4 @@ Plans:
 | 3. Support Tab Switching and New Window Focus | 2/2 | Complete | 2026-05-15 |
 | 4. Support Dynamic Placeholder Expansion | 1/1 | Complete | 2026-05-25 |
 | 5. Support wait_seconds in WaitConditionType | 1/1 | Complete | 2026-05-26 |
+| 6. Support execute_js_script Action Type | 0/? | In Progress | — |
