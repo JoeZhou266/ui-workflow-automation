@@ -12,6 +12,7 @@ A data-driven Selenium test automation framework in Python 3.9.13. Workflows are
   - [Quick Start](#quick-start)
 - [Configuration](#configuration)
 - [Writing Workflow JSON](#writing-workflow-json)
+  - [Skipping invisible optional elements](#skipping-invisible-optional-elements)
 - [Supported Element Types and Actions](#supported-element-types-and-actions)
 - [Synchronisation and Wait Strategies](#synchronisation-and-wait-strategies)
 - [Running Tests](#running-tests)
@@ -331,6 +332,51 @@ Use `execute_js_script` to run arbitrary JavaScript in the browser context. The 
 
 ---
 
+### Skipping invisible optional elements
+
+Set `options.skip_if_not_visible: true` on any element to make it conditional. Before running `pre_wait` or the action, the engine probes element visibility. If the element is not present or not visible, the step is recorded as **SKIPPED** (not FAILED) and execution continues to the next element.
+
+This is the correct approach for UI elements that are conditionally rendered — for example, a cookie banner, a promotional modal, or a progress indicator that only appears on certain runs.
+
+```json
+{
+  "name": "Cookie Banner Accept",
+  "type": "button",
+  "action": "click",
+  "locator": { "by": "css_selector", "value": "#cookie-accept-btn" },
+  "options": { "skip_if_not_visible": true }
+}
+```
+
+```json
+{
+  "name": "Dismiss Promo Modal",
+  "type": "button",
+  "action": "click",
+  "locator": { "by": "id", "value": "promo-close" },
+  "options": { "skip_if_not_visible": true },
+  "post_wait": {
+    "condition": "invisible",
+    "locator": { "by": "id", "value": "promo-modal" },
+    "timeout": 5
+  }
+}
+```
+
+**Behaviour summary:**
+
+| Element visible? | `skip_if_not_visible` set? | Outcome |
+|---|---|---|
+| Yes | `true` | Runs normally (pre_wait → action → post_wait) |
+| No | `true` | Recorded as **SKIPPED**, execution continues |
+| Yes or No | absent / `false` | Standard behaviour — not visible causes `WaitTimeoutError` |
+
+> **`pre_wait` is never called for skipped elements.** The visibility probe runs first, so no wait cost is incurred when an optional element is absent.
+
+> **SKIPPED ≠ FAILED.** Skipped steps are counted in `ExecutionSummary.skipped`, not `failed`. `passed_rate` is calculated from `passed / total`, so skipped steps do not reduce the pass rate.
+
+---
+
 ### Full field reference
 
 #### WorkflowDefinition (root)
@@ -386,7 +432,7 @@ Use `execute_js_script` to run arbitrary JavaScript in the browser context. The 
 | `assertions` | array | | Post-action `AssertionDefinition` checks |
 | `retryable` | boolean | | Retry on failure |
 | `retry_count` | integer | | Number of retries (max 10) |
-| `options` | object | | Extra per-action options (e.g. `trigger_change_event: true`) |
+| `options` | object | | Extra per-action options. Supported keys: `skip_if_not_visible: true` (see [Skipping invisible optional elements](#skipping-invisible-optional-elements)), `trigger_change_event: true` |
 
 #### LoadCriteria / WaitConditionDefinition
 
@@ -594,6 +640,7 @@ WorkflowEngine
         │
         ├── PageReadinessChecker            (load_criteria + spinner/overlay/AJAX)
         ├── ActionFactory
+        │     ├── [visibility probe]          (skip_if_not_visible → raises SkipElementSignal)
         │     ├── WaitManager.wait_for_condition(pre_wait)
         │     ├── ElementActions.execute()
         │     │     └── BasePage / BaseComponent interaction methods
