@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import time
-from typing import Callable, List, Optional, Tuple, TypeVar
+from typing import Any, Callable, List, Optional, Tuple, TypeVar
 
 from selenium.common.exceptions import (
     ElementClickInterceptedException,
@@ -321,6 +321,18 @@ class BasePage:
             )
         new_handle = new_handles.pop()
         self._driver.switch_to.window(new_handle)
+
+    def execute_script(self, script: str) -> Any:
+        """Execute an arbitrary JavaScript string in the current browser context.
+
+        Args:
+            script: JavaScript to execute.
+
+        Returns:
+            The value returned by the script (if any), as reported by Selenium.
+        """
+        logger.debug("execute_script: %s", script[:120])
+        return self._driver.execute_script(script)
 
     def scroll_into_view(self, element: WebElement) -> None:
         """Scroll the element into the viewport via JavaScript."""

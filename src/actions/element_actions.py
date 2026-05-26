@@ -91,7 +91,12 @@ class ElementActions:
 
             elif action == ActionType.EXECUTE_JS_SCRIPT:
                 # element.locator is not used; JS string is read from value.
-                self._page._driver.execute_script(str(value))
+                if value is None:
+                    raise ElementActionError(
+                        "No script provided for execute_js_script (value is None)",
+                        element_name=element.name,
+                    )
+                self._page.execute_script(str(value))
 
             else:
                 raise ElementActionError(
