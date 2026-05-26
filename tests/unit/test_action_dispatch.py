@@ -204,16 +204,17 @@ class TestElementActions:
             value="document.title",
         )
         executor.execute(el, value="document.title")
-        mock_page._driver.execute_script.assert_called_once_with("document.title")
+        mock_page.execute_script.assert_called_once_with("document.title")
 
-    def test_execute_js_script_none_value_coerces_to_str(self, executor, mock_page):
-        """When value is None, execute_script must receive the string 'None'."""
+    def test_execute_js_script_none_value_raises(self, executor, mock_page):
+        """When value is None, execute should raise ElementActionError."""
+        from src.core.exceptions import ElementActionError
         el = _make_element(
             etype=ElementType.SCRIPT,
             action=ActionType.EXECUTE_JS_SCRIPT,
         )
-        executor.execute(el, value=None)
-        mock_page._driver.execute_script.assert_called_once_with("None")
+        with pytest.raises(ElementActionError, match="No script provided"):
+            executor.execute(el, value=None)
 
 
 class TestActionFactory:
