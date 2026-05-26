@@ -55,6 +55,7 @@ class WaitConditionType(str, Enum):
     SPINNER_GONE = "spinner_gone"
     OVERLAY_GONE = "overlay_gone"
     ENABLED = "enabled"
+    WAIT_SECONDS = "wait_seconds"
 
 
 class StepStatus(str, Enum):

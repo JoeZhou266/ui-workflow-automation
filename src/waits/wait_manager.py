@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import time
 from typing import Callable, Optional, Tuple
 
 from selenium.common.exceptions import TimeoutException
@@ -188,6 +189,15 @@ class WaitManager:
         except WaitTimeoutError:
             logger.debug("%s did not disappear within timeout — continuing", label)
 
+    def _sleep_seconds(self, seconds: int) -> None:
+        # Intentional fixed-duration pause — this IS the feature, not a timing workaround.
+        # Per CLAUDE.md §Synchronization layer: sleep must be isolated in one helper,
+        # configurable, logged at WARNING, and commented with the reason.
+        logger.warning(
+            "Sleeping for %ds (wait_seconds — intentional fixed-delay pause)", seconds
+        )
+        time.sleep(seconds)
+
     def _dispatch(
         self,
         ctype: WaitConditionType,
@@ -249,5 +259,8 @@ class WaitManager:
         elif ctype == WaitConditionType.ENABLED:
             if loc:
                 self.wait_for(es.element_enabled(loc), desc, timeout=timeout, poll_ms=poll_ms)
+        elif ctype == WaitConditionType.WAIT_SECONDS:
+            # timeout is reused as sleep duration per phase 5 D-01
+            self._sleep_seconds(timeout)
         else:
             logger.warning("Unhandled wait condition type: %s", ctype)
