@@ -90,3 +90,21 @@ class TestWaitSecondsDispatch:
         )
         with patch("src.waits.wait_manager.time.sleep"):
             wm.wait_for_condition(cdef)
+
+    def test_wait_seconds_bypasses_pre_checks_when_require_document_ready_set(self, wm):
+        """WAIT_SECONDS must short-circuit before the readiness pre-checks.
+
+        Even if require_document_ready=True is set, the sleep should execute
+        immediately and wait_for must never be called — the early-return guard
+        prevents WaitTimeoutError from firing against an unloaded page.
+        """
+        cdef = WaitConditionDefinition(
+            condition=WaitConditionType.WAIT_SECONDS,
+            timeout=3,
+            require_document_ready=True,
+        )
+        with patch("src.waits.wait_manager.time.sleep") as mock_sleep, \
+             patch.object(wm, "wait_for") as mock_wait_for:
+            wm.wait_for_condition(cdef, element_name="pause_before_nav")
+        mock_sleep.assert_called_once_with(3)
+        mock_wait_for.assert_not_called()

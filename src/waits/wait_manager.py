@@ -90,6 +90,15 @@ class WaitManager:
         t = condition_def.timeout
         p = condition_def.poll_frequency_ms
 
+        # WAIT_SECONDS is a pure fixed-delay pause — bypass all readiness
+        # pre-checks (document ready, AJAX idle, spinner/overlay gone) because
+        # they are not meaningful for an unconditional sleep and could raise
+        # WaitTimeoutError before the sleep executes (e.g. when pausing before
+        # page navigation where the document is not yet loaded).
+        if ctype == WaitConditionType.WAIT_SECONDS:
+            self._sleep_seconds(t)
+            return
+
         # Optional document/AJAX readiness checks first
         if condition_def.require_document_ready:
             self.wait_for(
@@ -189,12 +198,12 @@ class WaitManager:
         except WaitTimeoutError:
             logger.debug("%s did not disappear within timeout — continuing", label)
 
-    def _sleep_seconds(self, seconds: int) -> None:
+    def _sleep_seconds(self, seconds: float) -> None:
         # Intentional fixed-duration pause — this IS the feature, not a timing workaround.
         # Per CLAUDE.md §Synchronization layer: sleep must be isolated in one helper,
         # configurable, logged at WARNING, and commented with the reason.
         logger.warning(
-            "Sleeping for %ds (wait_seconds — intentional fixed-delay pause)", seconds
+            "Sleeping for %ss (wait_seconds — intentional fixed-delay pause)", seconds
         )
         time.sleep(seconds)
 
