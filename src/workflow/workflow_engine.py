@@ -132,9 +132,9 @@ class WorkflowEngine:
             duration_ms = (time.monotonic() - start_ms) * 1000
             self._collector.record_pass(ctx, element.action, duration_ms=duration_ms)
 
-        except SkipElementSignal:
+        except SkipElementSignal as exc:
             self._collector.record_skip(
-                ctx, element.action, reason="skip_if_not_visible=true"
+                ctx, element.action, reason=str(exc)
             )
 
         except WaitTimeoutError as exc:
