@@ -12,6 +12,7 @@ Data-driven Selenium automation framework that reads workflow definitions from J
 - [x] **Phase 4: Support Dynamic Placeholder Expansion** - registry-based ${placeholder} expansion in workflow JSON values
 - [x] **Phase 5: Support wait_seconds in WaitConditionType** - fixed-duration pause in pre_wait/post_wait via a `wait_seconds` condition reusing the existing `timeout` field
 - [x] **Phase 6: Support execute_js_script Action Type** - execute arbitrary JavaScript from workflow JSON via `element.value` field
+- [x] **Phase 7: Support skip-if-not-visible** - SkipElementSignal exception + ActionFactory visibility probe + WorkflowEngine catch, records step as SKIPPED not FAILED
 
 ## Phase Details
 
@@ -98,6 +99,20 @@ Plans:
 Plans:
 - [x] 06-01-PLAN.md — TDD: RED tests for SCRIPT/EXECUTE_JS_SCRIPT enum membership and execute_script dispatch; GREEN implementation adds two enum values and elif branch in ElementActions.execute()
 
+### Phase 7: Support skip-if-not-visible
+**Goal**: Add conditional execution to element actions: when `options.skip_if_not_visible` is `true`, the engine checks element visibility at dispatch time. If not visible, the step is recorded as `SKIPPED` (not `FAILED`) and execution continues to the next element.
+**Depends on**: Phase 6
+**Success Criteria** (what must be TRUE):
+  1. `SkipElementSignal` exception class exists in `src/core/exceptions.py`
+  2. `ActionFactory.run()` raises `SkipElementSignal` before pre_wait when `skip_if_not_visible=True` and element is not visible
+  3. `WorkflowEngine._run_element()` catches `SkipElementSignal` and calls `record_skip()` (not `record_fail()`)
+  4. Visibility probe runs before pre_wait — no wait cost for skipped elements
+  5. Unit tests cover: signal raised, no signal when visible, pre_wait skipped, skipped count increments
+**Plans**: 1 plan
+
+Plans:
+- [x] 07-01-PLAN.md — TDD: RED tests for SkipElementSignal raise and engine catch; GREEN implementation adds exception, factory guard using BasePage.is_visible(), and _run_element() except branch
+
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
@@ -108,3 +123,4 @@ Plans:
 | 4. Support Dynamic Placeholder Expansion | 1/1 | Complete | 2026-05-25 |
 | 5. Support wait_seconds in WaitConditionType | 1/1 | Complete | 2026-05-26 |
 | 6. Support execute_js_script Action Type | 1/1 | Complete | 2026-05-25 |
+| 7. Support skip-if-not-visible | 1/1 | Complete | 2026-05-26 |

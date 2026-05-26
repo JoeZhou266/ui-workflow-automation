@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: complete
-stopped_at: "Phase 6 complete"
-last_updated: "2026-05-25"
-last_activity: 2026-05-25 -- Phase 6 complete (execute_js_script action type, 4 new tests, verification passed)
+stopped_at: "Phase 7 complete"
+last_updated: "2026-05-26"
+last_activity: 2026-05-26 -- Phase 7 executed (skip_if_not_visible conditional execution, 4 new unit tests pass, all 185 existing tests unaffected)
 progress:
-  total_phases: 6
-  completed_phases: 6
-  total_plans: 8
-  completed_plans: 8
+  total_phases: 7
+  completed_phases: 7
+  total_plans: 9
+  completed_plans: 9
   percent: 100
 ---
 
@@ -19,15 +19,15 @@ progress:
 ## Project Reference
 
 **Core value:** JSON-driven browser automation — zero Python per new workflow
-**Current focus:** Milestone v1.0 complete
+**Current focus:** Milestone v1.0 complete — all 7 phases delivered
 
 ## Current Position
 
-Phase: 6 of 6 (Support execute_js_script Action Type) — Complete
-Status: All phases complete
-Last activity: 2026-05-25 -- Phase 6 complete (execute_js_script action type)
+Phase: 7 of 7 (Support skip-if-not-visible) — Complete
+Status: All plans complete
+Last activity: 2026-05-26 -- Phase 7 complete (SkipElementSignal + factory guard + engine catch)
 
-Progress: [█████████████░░] 83%
+Progress: [██████████████░] 86%
 
 ## Accumulated Context
 
@@ -55,6 +55,7 @@ None.
 - Phase 4 added: Support dynamic placeholder expansion — registry-based ${placeholder} resolution in workflow JSON values
 - Phase 5 added: Support wait_seconds — fixed-duration pause in pre_wait/post_wait via WaitConditionType.WAIT_SECONDS
 - Phase 6 added: Support execute_js_script — execute arbitrary JS via element.value; SCRIPT added to ElementType
+- Phase 7 added: Support skip_if_not_visible — SkipElementSignal exception + ActionFactory visibility probe + WorkflowEngine catch; optional elements skip cleanly without FAILED status
 
 ### Phase 6 Decisions
 
