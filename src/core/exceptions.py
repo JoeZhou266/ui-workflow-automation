@@ -91,3 +91,16 @@ class WorkflowExecutionError(FrameworkError):
             parts.append(f"element='{element}'")
         context = f" [{', '.join(parts)}]" if parts else ""
         super().__init__(f"Workflow execution error{context}: {message}")
+
+
+class SkipElementSignal(FrameworkError):
+    """Raised by ActionFactory when skip_if_not_visible=True and the element is not visible.
+
+    This is a control-flow signal, not an error. WorkflowEngine catches it and
+    records the step as SKIPPED rather than FAILED.
+    """
+
+    def __init__(self, element_name: str = "") -> None:
+        ctx = f" (element='{element_name}')" if element_name else ""
+        super().__init__(f"Element not visible — skipping{ctx}")
+        self.element_name = element_name

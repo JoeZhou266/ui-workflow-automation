@@ -4,7 +4,7 @@ from typing import Optional, Any
 
 from src.actions.element_actions import ElementActions
 from src.actions.value_resolver import ValueResolver
-from src.core.exceptions import ElementActionError
+from src.core.exceptions import ElementActionError, SkipElementSignal
 from src.core.logger import get_logger
 from src.models.workflow_models import ElementDefinition
 from src.ui.base_page import BasePage
@@ -24,6 +24,7 @@ class ActionFactory:
     def __init__(self, page: BasePage, wait_manager: WaitManager) -> None:
         self._executor = ElementActions(page, wait_manager)
         self._wm = wait_manager
+        self._page = page
 
     def run(self, element: ElementDefinition) -> None:
         """Run the complete action sequence for a single element.
@@ -38,7 +39,15 @@ class ActionFactory:
 
         Raises:
             ElementActionError: On interaction or assertion failure.
+            SkipElementSignal: When skip_if_not_visible=True and element is not visible.
         """
+        if element.options and element.options.get("skip_if_not_visible"):
+            if not self._page.is_visible(element.locator):
+                logger.info(
+                    "[%s] Not visible — skipping (skip_if_not_visible=true)", element.name
+                )
+                raise SkipElementSignal(element.name)
+
         resolved_value = _resolver.resolve(element.value)
 
         # 1. Pre-wait

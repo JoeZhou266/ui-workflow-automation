@@ -7,7 +7,7 @@ from selenium.webdriver.remote.webdriver import WebDriver
 
 from src.actions.action_factory import ActionFactory
 from src.core.enums import FailurePhase
-from src.core.exceptions import ElementActionError, PageLoadError, WaitTimeoutError
+from src.core.exceptions import ElementActionError, PageLoadError, SkipElementSignal, WaitTimeoutError
 from src.core.logger import get_logger
 from src.models.element_models import ExecutionSummary
 from src.models.workflow_models import (
@@ -131,6 +131,11 @@ class WorkflowEngine:
             factory.run(element)
             duration_ms = (time.monotonic() - start_ms) * 1000
             self._collector.record_pass(ctx, element.action, duration_ms=duration_ms)
+
+        except SkipElementSignal:
+            self._collector.record_skip(
+                ctx, element.action, reason="skip_if_not_visible=true"
+            )
 
         except WaitTimeoutError as exc:
             duration_ms = (time.monotonic() - start_ms) * 1000
