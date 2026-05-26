@@ -11,7 +11,7 @@ Data-driven Selenium automation framework that reads workflow definitions from J
 - [x] **Phase 3: Support Tab Switching and New Window Focus** - switch tab / new window via workflow JSON
 - [x] **Phase 4: Support Dynamic Placeholder Expansion** - registry-based ${placeholder} expansion in workflow JSON values
 - [x] **Phase 5: Support wait_seconds in WaitConditionType** - fixed-duration pause in pre_wait/post_wait via a `wait_seconds` condition reusing the existing `timeout` field
-- [ ] **Phase 6: Support execute_js_script Action Type** - execute arbitrary JavaScript from workflow JSON via `element.value` field
+- [x] **Phase 6: Support execute_js_script Action Type** - execute arbitrary JavaScript from workflow JSON via `element.value` field
 
 ## Phase Details
 
@@ -107,4 +107,4 @@ Plans:
 | 3. Support Tab Switching and New Window Focus | 2/2 | Complete | 2026-05-15 |
 | 4. Support Dynamic Placeholder Expansion | 1/1 | Complete | 2026-05-25 |
 | 5. Support wait_seconds in WaitConditionType | 1/1 | Complete | 2026-05-26 |
-| 6. Support execute_js_script Action Type | 0/1 | In Progress | — |
+| 6. Support execute_js_script Action Type | 1/1 | Complete | 2026-05-25 |
