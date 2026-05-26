@@ -266,3 +266,41 @@ class TestLoadCriteria:
         )
         assert lc.locator is not None
         assert lc.timeout == 30
+
+
+# ---------------------------------------------------------------------------
+# WaitConditionDefinition
+# ---------------------------------------------------------------------------
+
+class TestWaitConditionDefinition:
+    def test_wait_seconds_accepted_as_condition(self):
+        wcd = WaitConditionDefinition(
+            condition=WaitConditionType.WAIT_SECONDS,
+            timeout=3,
+        )
+        assert wcd.condition == WaitConditionType.WAIT_SECONDS
+        assert wcd.timeout == 3
+
+    def test_wait_seconds_timeout_lower_bound(self):
+        with pytest.raises(ValidationError):
+            WaitConditionDefinition(
+                condition=WaitConditionType.WAIT_SECONDS,
+                timeout=0,
+            )
+
+    def test_wait_seconds_timeout_upper_bound(self):
+        with pytest.raises(ValidationError):
+            WaitConditionDefinition(
+                condition=WaitConditionType.WAIT_SECONDS,
+                timeout=301,
+            )
+
+    def test_wait_seconds_no_locator_required(self):
+        wcd = WaitConditionDefinition(
+            condition=WaitConditionType.WAIT_SECONDS,
+            timeout=2,
+        )
+        assert wcd.locator is None
+
+    def test_wait_seconds_enum_string_value(self):
+        assert WaitConditionType.WAIT_SECONDS.value == "wait_seconds"
