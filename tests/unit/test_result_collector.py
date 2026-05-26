@@ -59,6 +59,14 @@ class TestResultCollector:
         assert summary.skipped == 1
         assert summary.steps[0].error_message == "page load failed"
 
+    def test_record_skip_increments_skipped(self):
+        ctx = _ctx()
+        self.collector.record_skip(ctx, ActionType.CLICK, reason="skip_if_not_visible=true")
+        summary = self.collector.summary()
+        assert summary.skipped == 1
+        assert summary.total == 1
+        assert summary.passed == 0
+
     def test_multiple_steps_aggregate_correctly(self):
         self.collector.record_pass(_ctx(element_name="A"), ActionType.CLICK)
         self.collector.record_pass(_ctx(element_name="B"), ActionType.INPUT)

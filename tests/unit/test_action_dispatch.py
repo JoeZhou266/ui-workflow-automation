@@ -282,6 +282,58 @@ class TestActionFactory:
         with pytest.raises(ElementActionError):
             factory.run(el)
 
+    def test_skip_if_not_visible_raises_signal(self, mock_page, mock_wm):
+        """factory.run() must raise SkipElementSignal when element is not visible."""
+        from src.core.exceptions import SkipElementSignal
+
+        mock_page.is_visible.return_value = False
+        el = _make_element(
+            action=ActionType.CLICK,
+            options={"skip_if_not_visible": True},
+        )
+        factory = ActionFactory(mock_page, mock_wm)
+
+        with pytest.raises(SkipElementSignal):
+            factory.run(el)
+
+    def test_skip_if_visible_proceeds_normally(self, mock_page, mock_wm):
+        """factory.run() must NOT raise when element is visible — action runs."""
+        from src.core.exceptions import SkipElementSignal
+
+        mock_page.is_visible.return_value = True
+        el = _make_element(
+            action=ActionType.CLICK,
+            options={"skip_if_not_visible": True},
+        )
+        factory = ActionFactory(mock_page, mock_wm)
+
+        factory.run(el)  # must not raise
+        mock_page.safe_click.assert_called_once()
+
+    def test_skip_if_not_visible_does_not_call_pre_wait(self, mock_page, mock_wm):
+        """pre_wait must not be invoked when the element is not visible and will be skipped."""
+        from src.core.exceptions import SkipElementSignal
+        from src.models.workflow_models import WaitConditionDefinition
+        from src.core.enums import WaitConditionType
+
+        mock_page.is_visible.return_value = False
+        pre_wait = WaitConditionDefinition(
+            condition=WaitConditionType.VISIBLE,
+            timeout=5,
+            locator=_make_locator(),
+        )
+        el = _make_element(
+            action=ActionType.CLICK,
+            options={"skip_if_not_visible": True},
+            pre_wait=pre_wait,
+        )
+        factory = ActionFactory(mock_page, mock_wm)
+
+        with pytest.raises(SkipElementSignal):
+            factory.run(el)
+
+        mock_wm.wait_for_condition.assert_not_called()
+
 
 class TestValueResolver:
     def test_none_returns_none(self):
