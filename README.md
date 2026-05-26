@@ -301,6 +301,36 @@ Use `switch_to_new_window` or `switch_to_new_tab` to programmatically open a new
 
 ---
 
+### Executing JavaScript in the browser
+
+Use `execute_js_script` to run arbitrary JavaScript in the browser context. The script string is read from `element.value` and dispatched via `driver.execute_script()` — no DOM element is located or interacted with. The return value is silently discarded.
+
+```json
+{
+  "name": "Scroll to Bottom",
+  "type": "script",
+  "action": "execute_js_script",
+  "locator": { "by": "id", "value": "_script" },
+  "value": "window.scrollTo(0, document.body.scrollHeight);"
+}
+```
+
+```json
+{
+  "name": "Remove Overlay",
+  "type": "script",
+  "action": "execute_js_script",
+  "locator": { "by": "id", "value": "_script" },
+  "value": "document.getElementById('cookie-banner').remove();"
+}
+```
+
+> **Sentinel locator:** Script actions do not interact with any DOM element. The `locator` field is required by the schema — use `{ "by": "id", "value": "_script" }` as a conventional no-op placeholder. The dispatch layer ignores it.
+
+> **`value` is required:** If `value` is absent or `null`, the action raises `ElementActionError`. Always provide the JavaScript string.
+
+---
+
 ### Full field reference
 
 #### WorkflowDefinition (root)
@@ -349,7 +379,7 @@ Use `switch_to_new_window` or `switch_to_new_tab` to programmatically open a new
 | `type` | string | ✓ | See [Element Types](#element-types) |
 | `action` | string | ✓ | See [Action Types](#action-types) |
 | `locator` | object | ✓ | `{ "by": "<strategy>", "value": "<selector>" }` |
-| `value` | any | | Input value, option text, file path, etc. |
+| `value` | any | | Input value, option text, file path, JavaScript string (for `execute_js_script`), etc. |
 | `required` | boolean | | If `true` and `value` is absent, validation fails |
 | `pre_wait` | object | | `WaitConditionDefinition` — wait before interaction |
 | `post_wait` | object | | `WaitConditionDefinition` — wait after interaction |
@@ -381,7 +411,7 @@ Use `switch_to_new_window` or `switch_to_new_tab` to programmatically open a new
 
 ### Element Types
 
-`text` · `textarea` · `number` · `email` · `button` · `checkbox` · `radio` · `select` · `multiselect` · `date` · `link` · `label` · `file`
+`text` · `textarea` · `number` · `email` · `button` · `checkbox` · `radio` · `select` · `multiselect` · `date` · `link` · `label` · `file` · `script`
 
 ### Action Types
 
@@ -399,6 +429,7 @@ Use `switch_to_new_window` or `switch_to_new_tab` to programmatically open a new
 | `switch_to_new_window` | Open a new browser window and switch focus to it |
 | `switch_to_new_tab` | Open a new browser tab and switch focus to it |
 | `switch_to_latest_window` | Wait for a new window/tab to appear (e.g. opened by a link click) and switch focus to it |
+| `execute_js_script` | Execute an arbitrary JavaScript string (from `value`) in the browser. No DOM element is resolved. Raises `ElementActionError` if `value` is absent. Return value is silently discarded. |
 | `assert_only` | Run assertions without performing an interaction |
 | `noop` | Skip this element entirely |
 
