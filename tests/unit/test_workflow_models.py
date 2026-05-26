@@ -157,6 +157,28 @@ class TestElementDefinition:
             )
             assert el.action == atype
 
+    def test_execute_js_script_element_type_is_valid(self):
+        """Pydantic must accept ElementType.SCRIPT on an ElementDefinition."""
+        el = ElementDefinition(
+            name="Script",
+            type=ElementType.SCRIPT,
+            action=ActionType.EXECUTE_JS_SCRIPT,
+            locator=self._make_locator(),
+            value="window.scrollTo(0, 0)",
+        )
+        assert el.type == ElementType.SCRIPT
+
+    def test_execute_js_script_action_type_is_valid(self):
+        """Pydantic must accept ActionType.EXECUTE_JS_SCRIPT on an ElementDefinition."""
+        el = ElementDefinition(
+            name="Script",
+            type=ElementType.SCRIPT,
+            action=ActionType.EXECUTE_JS_SCRIPT,
+            locator=self._make_locator(),
+            value="window.scrollTo(0, 0)",
+        )
+        assert el.action == ActionType.EXECUTE_JS_SCRIPT
+
 
 # ---------------------------------------------------------------------------
 # SectionDefinition

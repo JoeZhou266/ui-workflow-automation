@@ -196,6 +196,25 @@ class TestElementActions:
         executor.execute(el)
         mock_page.switch_to_latest_window.assert_called_once()
 
+    def test_execute_js_script_action(self, executor, mock_page):
+        """execute_script must be called with the JS string from element.value."""
+        el = _make_element(
+            etype=ElementType.SCRIPT,
+            action=ActionType.EXECUTE_JS_SCRIPT,
+            value="document.title",
+        )
+        executor.execute(el, value="document.title")
+        mock_page._driver.execute_script.assert_called_once_with("document.title")
+
+    def test_execute_js_script_none_value_coerces_to_str(self, executor, mock_page):
+        """When value is None, execute_script must receive the string 'None'."""
+        el = _make_element(
+            etype=ElementType.SCRIPT,
+            action=ActionType.EXECUTE_JS_SCRIPT,
+        )
+        executor.execute(el, value=None)
+        mock_page._driver.execute_script.assert_called_once_with("None")
+
 
 class TestActionFactory:
     def test_pre_wait_called_before_action(self, mock_page, mock_wm):
