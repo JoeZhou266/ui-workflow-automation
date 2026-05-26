@@ -172,8 +172,10 @@ class WorkflowEngine:
     @staticmethod
     def _infer_failure_phase(exc: WaitTimeoutError) -> FailurePhase:
         msg = str(exc).lower()
-        if "pre" in msg or "pre_wait" in msg:
+        # Match only explicit phase labels to avoid false positives from condition names
+        # (e.g. "present" contains "pre", "post_something" could match "post").
+        if "pre_wait" in msg:
             return FailurePhase.PRE_WAIT
-        if "post" in msg or "post_wait" in msg:
+        if "post_wait" in msg:
             return FailurePhase.POST_WAIT
         return FailurePhase.ACTION
