@@ -178,46 +178,78 @@ class TestElementActions:
         mock_page.check.assert_called_once_with(el.locator, el.name, "")
 
     def test_check_with_name_locator_and_value_builds_css_selector(self):
-        """BasePage.check() builds CSS selector when value+name present; idempotency: no click if already selected."""
+        """BasePage.check() builds CSS selector when value+name present.
+
+        Case 1 (idempotency): element already checked → no click.
+        Case 2 (must click): element not yet checked → exactly one click.
+        """
         from src.ui.base_page import BasePage
         from src.models.workflow_models import LocatorDefinition
 
+        name_locator = LocatorDefinition(by="name", value="hobby")
+        expected_css_locator = LocatorDefinition(
+            by="css_selector",
+            value='input[type="checkbox"][name="hobby"][value="sports"]',
+        )
+
+        # Case 1: already checked -> no click
         already_checked_el = MagicMock()
         already_checked_el.is_selected.return_value = True
 
         page = MagicMock(spec=BasePage)
         page.wait_for_visible.return_value = already_checked_el
 
-        name_locator = LocatorDefinition(by="name", value="hobby")
         BasePage.check(page, name_locator, "checkbox-1", "sports")
 
+        page.wait_for_visible.assert_called_once_with(expected_css_locator)
+        already_checked_el.click.assert_not_called()
+
+        # Case 2: not yet checked -> exactly one click
+        not_yet_checked_el = MagicMock()
+        not_yet_checked_el.is_selected.return_value = False
+        page2 = MagicMock(spec=BasePage)
+        page2.wait_for_visible.return_value = not_yet_checked_el
+
+        BasePage.check(page2, name_locator, "checkbox-1", "sports")
+
+        not_yet_checked_el.click.assert_called_once()
+
+    def test_uncheck_with_name_locator_and_value_builds_css_selector(self):
+        """BasePage.uncheck() builds CSS selector when value+name present.
+
+        Case 1 (idempotency): element already unchecked → no click.
+        Case 2 (must click): element currently checked → exactly one click.
+        """
+        from src.ui.base_page import BasePage
+        from src.models.workflow_models import LocatorDefinition
+
+        name_locator = LocatorDefinition(by="name", value="hobby")
         expected_css_locator = LocatorDefinition(
             by="css_selector",
             value='input[type="checkbox"][name="hobby"][value="sports"]',
         )
-        page.wait_for_visible.assert_called_once_with(expected_css_locator)
-        already_checked_el.click.assert_not_called()
 
-    def test_uncheck_with_name_locator_and_value_builds_css_selector(self):
-        """BasePage.uncheck() builds CSS selector when value+name present; idempotency: no click if already unchecked."""
-        from src.ui.base_page import BasePage
-        from src.models.workflow_models import LocatorDefinition
-
+        # Case 1: already unchecked -> no click
         already_unchecked_el = MagicMock()
         already_unchecked_el.is_selected.return_value = False
 
         page = MagicMock(spec=BasePage)
         page.wait_for_visible.return_value = already_unchecked_el
 
-        name_locator = LocatorDefinition(by="name", value="hobby")
         BasePage.uncheck(page, name_locator, "checkbox-1", "sports")
 
-        expected_css_locator = LocatorDefinition(
-            by="css_selector",
-            value='input[type="checkbox"][name="hobby"][value="sports"]',
-        )
         page.wait_for_visible.assert_called_once_with(expected_css_locator)
         already_unchecked_el.click.assert_not_called()
+
+        # Case 2: currently checked -> exactly one click
+        currently_checked_el = MagicMock()
+        currently_checked_el.is_selected.return_value = True
+        page2 = MagicMock(spec=BasePage)
+        page2.wait_for_visible.return_value = currently_checked_el
+
+        BasePage.uncheck(page2, name_locator, "checkbox-1", "sports")
+
+        currently_checked_el.click.assert_called_once()
 
     def test_number_input_action(self, executor, mock_page):
         el = _make_element(
