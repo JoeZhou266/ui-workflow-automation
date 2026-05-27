@@ -13,6 +13,7 @@ Data-driven Selenium automation framework that reads workflow definitions from J
 - [x] **Phase 5: Support wait_seconds in WaitConditionType** - fixed-duration pause in pre_wait/post_wait via a `wait_seconds` condition reusing the existing `timeout` field
 - [x] **Phase 6: Support execute_js_script Action Type** - execute arbitrary JavaScript from workflow JSON via `element.value` field
 - [x] **Phase 7: Support skip-if-not-visible** - SkipElementSignal exception + ActionFactory visibility probe + WorkflowEngine catch, records step as SKIPPED not FAILED
+- [ ] **Phase 8: Support checkbox search by name+value** - transparent enhancement to CHECK/UNCHECK via CSS selector (mirrors select_radio pattern)
 
 ## Phase Details
 
@@ -113,6 +114,20 @@ Plans:
 Plans:
 - [x] 07-01-PLAN.md — TDD: RED tests for SkipElementSignal raise and engine catch; GREEN implementation adds exception, factory guard using BasePage.is_visible(), and _run_element() except branch
 
+### Phase 8: Support checkbox search by name+value
+**Goal**: Enable CHECK and UNCHECK actions to locate a specific checkbox by its HTML `value` attribute when multiple `<input type="checkbox">` elements share the same `name` attribute. When `locator.by == "name"` and `element.value` is non-empty, the framework builds a targeted CSS selector. Mirrors select_radio pattern exactly.
+**Depends on**: Phase 7
+**Success Criteria** (what must be TRUE):
+  1. `BasePage.check()` and `BasePage.uncheck()` accept optional `value: str = ""` param
+  2. When `value` is non-empty and `locator.by == "name"`, CSS selector `input[type="checkbox"][name="..."][value="..."]` is built and used
+  3. When `value` is empty or `locator.by != "name"`, plain locator is used (backwards compatible)
+  4. `ElementActions.execute()` CHECK and UNCHECK branches pass resolved value through to the updated methods
+  5. Unit tests cover: value-present path, value-absent path, already-checked idempotency, already-unchecked idempotency
+**Plans**: 1 plan
+
+Plans:
+- [ ] 08-01-PLAN.md — TDD: RED tests for value passthrough dispatch and CSS selector construction; GREEN implementation extends check/uncheck signatures and updates CHECK/UNCHECK dispatch branches
+
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
@@ -124,3 +139,4 @@ Plans:
 | 5. Support wait_seconds in WaitConditionType | 1/1 | Complete | 2026-05-26 |
 | 6. Support execute_js_script Action Type | 1/1 | Complete | 2026-05-25 |
 | 7. Support skip-if-not-visible | 1/1 | Complete | 2026-05-26 |
+| 8. Support checkbox search by name+value | 0/1 | In Progress | — |
