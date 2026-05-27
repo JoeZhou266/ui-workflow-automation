@@ -12,6 +12,7 @@ A data-driven Selenium test automation framework in Python 3.9.13. Workflows are
   - [Quick Start](#quick-start)
 - [Configuration](#configuration)
 - [Writing Workflow JSON](#writing-workflow-json)
+  - [Disambiguating checkboxes by name and value](#disambiguating-checkboxes-by-name-and-value)
   - [Skipping invisible optional elements](#skipping-invisible-optional-elements)
 - [Supported Element Types and Actions](#supported-element-types-and-actions)
 - [Synchronisation and Wait Strategies](#synchronisation-and-wait-strategies)
@@ -332,6 +333,46 @@ Use `execute_js_script` to run arbitrary JavaScript in the browser context. The 
 
 ---
 
+### Disambiguating checkboxes by name and value
+
+When a form contains multiple `<input type="checkbox">` elements that share the same `name` attribute, use the `value` field to identify the exact checkbox. The framework automatically builds a CSS selector `input[type="checkbox"][name="..."][value="..."]` — no manual CSS required. This mirrors the existing behaviour for `select_radio`.
+
+This is opt-in and fully backwards-compatible: if `value` is absent or `locator.by` is not `name`, the plain locator is used unchanged.
+
+**Check a specific checkbox by name and value:**
+```json
+{
+  "name": "Select Sports Hobby",
+  "type": "checkbox",
+  "action": "check",
+  "locator": { "by": "name", "value": "hobby" },
+  "value": "sports"
+}
+```
+
+**Uncheck a specific checkbox:**
+```json
+{
+  "name": "Deselect Cooking Hobby",
+  "type": "checkbox",
+  "action": "uncheck",
+  "locator": { "by": "name", "value": "hobby" },
+  "value": "cooking"
+}
+```
+
+Both actions are idempotent — `check` does nothing if the checkbox is already checked, and `uncheck` does nothing if it is already unchecked.
+
+**How the locator is resolved:**
+
+| `locator.by` | `value` field | Locator used |
+|---|---|---|
+| `name` | `"sports"` | `input[type="checkbox"][name="hobby"][value="sports"]` (CSS selector) |
+| `name` | absent / `""` | `By.NAME, "hobby"` (plain locator, same as before) |
+| `id`, `css_selector`, etc. | any | plain locator, `value` ignored for location |
+
+---
+
 ### Skipping invisible optional elements
 
 Set `options.skip_if_not_visible: true` on any element to make it conditional. Before running `pre_wait` or the action, the engine probes element visibility. If the element is not present or not visible, the step is recorded as **SKIPPED** (not FAILED) and execution continues to the next element.
@@ -468,9 +509,9 @@ This is the correct approach for UI elements that are conditionally rendered —
 | `select_by_text` | Select a `<select>` option by visible text |
 | `select_by_value` | Select a `<select>` option by `value` attribute |
 | `select_by_index` | Select a `<select>` option by zero-based index |
-| `check` | Check a checkbox if not already checked |
-| `uncheck` | Uncheck a checkbox if currently checked |
-| `select_radio` | Select a radio button if not already selected |
+| `check` | Check a checkbox if not already checked. When `locator.by` is `name` and `value` is set, builds a targeted CSS selector to locate the exact checkbox — see [Disambiguating checkboxes by name and value](#disambiguating-checkboxes-by-name-and-value). |
+| `uncheck` | Uncheck a checkbox if currently checked. Supports the same name+value disambiguation as `check`. |
+| `select_radio` | Select a radio button if not already selected. When `locator.by` is `name` and `value` is set, builds `input[type="radio"][name="..."][value="..."]` to locate the exact button. |
 | `upload` | Set a file path on a file input element |
 | `switch_to_new_window` | Open a new browser window and switch focus to it |
 | `switch_to_new_tab` | Open a new browser tab and switch focus to it |
