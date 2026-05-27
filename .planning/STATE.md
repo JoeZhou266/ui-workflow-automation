@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: complete
-stopped_at: "Phase 8 context gathered"
+stopped_at: "Phase 8 complete"
 last_updated: "2026-05-26"
-last_activity: 2026-05-26 -- Phase 8 context gathered (checkbox search by name+value)
+last_activity: 2026-05-26 -- Phase 8 complete — checkbox search by name+value delivered
 progress:
-  total_phases: 7
-  completed_phases: 7
-  total_plans: 9
-  completed_plans: 9
+  total_phases: 8
+  completed_phases: 8
+  total_plans: 10
+  completed_plans: 10
   percent: 100
 ---
 
@@ -19,15 +19,15 @@ progress:
 ## Project Reference
 
 **Core value:** JSON-driven browser automation — zero Python per new workflow
-**Current focus:** Milestone v1.0 complete — all 7 phases delivered
+**Current focus:** Milestone v1.0 complete — all 8 phases delivered
 
 ## Current Position
 
-Phase: 7 of 7 (Support skip-if-not-visible) — Complete
+Phase: 8 of 8 (Support checkbox search by name+value) — Complete
 Status: All plans complete
-Last activity: 2026-05-26 -- Phase 7 complete (SkipElementSignal + factory guard + engine catch)
+Last activity: 2026-05-26 -- Phase 8 complete — checkbox search by name+value delivered
 
-Progress: [██████████████░] 86%
+Progress: [███████████████] 100%
 
 ## Accumulated Context
 
@@ -68,5 +68,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-05-26
-Stopped at: Phase 8 context gathered — ready for planning
-Resume file: .planning/phases/08-support-checkbox-search-by-name-value/08-CONTEXT.md
+Stopped at: Phase 8 complete — all phases done
+Resume file: None — milestone complete

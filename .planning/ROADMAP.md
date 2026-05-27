@@ -13,7 +13,7 @@ Data-driven Selenium automation framework that reads workflow definitions from J
 - [x] **Phase 5: Support wait_seconds in WaitConditionType** - fixed-duration pause in pre_wait/post_wait via a `wait_seconds` condition reusing the existing `timeout` field
 - [x] **Phase 6: Support execute_js_script Action Type** - execute arbitrary JavaScript from workflow JSON via `element.value` field
 - [x] **Phase 7: Support skip-if-not-visible** - SkipElementSignal exception + ActionFactory visibility probe + WorkflowEngine catch, records step as SKIPPED not FAILED
-- [ ] **Phase 8: Support checkbox search by name+value** - transparent enhancement to CHECK/UNCHECK via CSS selector (mirrors select_radio pattern)
+- [x] **Phase 8: Support checkbox search by name+value** - transparent enhancement to CHECK/UNCHECK via CSS selector (mirrors select_radio pattern)
 
 ## Phase Details
 
@@ -126,7 +126,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 08-01-PLAN.md — TDD: RED tests for value passthrough dispatch and CSS selector construction; GREEN implementation extends check/uncheck signatures and updates CHECK/UNCHECK dispatch branches
+- [x] 08-01-PLAN.md — TDD: RED tests for value passthrough dispatch and CSS selector construction; GREEN implementation extends check/uncheck signatures and updates CHECK/UNCHECK dispatch branches
 
 ## Progress
 
@@ -139,4 +139,4 @@ Plans:
 | 5. Support wait_seconds in WaitConditionType | 1/1 | Complete | 2026-05-26 |
 | 6. Support execute_js_script Action Type | 1/1 | Complete | 2026-05-25 |
 | 7. Support skip-if-not-visible | 1/1 | Complete | 2026-05-26 |
-| 8. Support checkbox search by name+value | 0/1 | In Progress | — |
+| 8. Support checkbox search by name+value | 1/1 | Complete | 2026-05-26 |
