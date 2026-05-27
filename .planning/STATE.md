@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: complete
-stopped_at: "Phase 7 complete"
+stopped_at: "Phase 8 context gathered"
 last_updated: "2026-05-26"
-last_activity: 2026-05-26 -- Phase 7 executed (skip_if_not_visible conditional execution, 4 new unit tests pass, all 185 existing tests unaffected)
+last_activity: 2026-05-26 -- Phase 8 context gathered (checkbox search by name+value)
 progress:
   total_phases: 7
   completed_phases: 7
@@ -56,6 +56,7 @@ None.
 - Phase 5 added: Support wait_seconds — fixed-duration pause in pre_wait/post_wait via WaitConditionType.WAIT_SECONDS
 - Phase 6 added: Support execute_js_script — execute arbitrary JS via element.value; SCRIPT added to ElementType
 - Phase 7 added: Support skip_if_not_visible — SkipElementSignal exception + ActionFactory visibility probe + WorkflowEngine catch; optional elements skip cleanly without FAILED status
+- Phase 8 added: Support checkbox search by name+value — transparent enhancement to CHECK/UNCHECK via CSS selector (mirrors select_radio pattern)
 
 ### Phase 6 Decisions
 
@@ -66,6 +67,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-25
-Stopped at: Phase 6 context gathered — ready for planning
-Resume file: .planning/phases/06-support-execute-js-script/06-CONTEXT.md
+Last session: 2026-05-26
+Stopped at: Phase 8 context gathered — ready for planning
+Resume file: .planning/phases/08-support-checkbox-search-by-name-value/08-CONTEXT.md
