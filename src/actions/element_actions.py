@@ -65,10 +65,10 @@ class ElementActions:
                 self._page.select_dropdown(element.locator, "index", str(value), element.name)
 
             elif action == ActionType.CHECK:
-                self._page.check(element.locator, element.name)
+                self._page.check(element.locator, element.name, str(value) if value is not None else "")
 
             elif action == ActionType.UNCHECK:
-                self._page.uncheck(element.locator, element.name)
+                self._page.uncheck(element.locator, element.name, str(value) if value is not None else "")
 
             elif action == ActionType.SELECT_RADIO:
                 self._page.select_radio(
