@@ -26,6 +26,11 @@ T = TypeVar("T")
 logger = get_logger("base_page")
 
 
+def _css_escape_attr(value: str) -> str:
+    """Escape double-quotes in a CSS attribute value to prevent selector injection."""
+    return value.replace('"', '\\"')
+
+
 class BasePage:
     """Provides all core Selenium interaction primitives.
 
@@ -263,7 +268,11 @@ class BasePage:
         Otherwise uses ``locator`` directly.
         """
         if value and locator.by == "name":
-            css = f'input[type="checkbox"][name="{locator.value}"][value="{value}"]'
+            css = (
+                f'input[type="checkbox"]'
+                f'[name="{_css_escape_attr(locator.value)}"]'
+                f'[value="{_css_escape_attr(value)}"]'
+            )
             target: LocatorDefinition = LocatorDefinition(by="css_selector", value=css)
         else:
             target = locator
@@ -279,7 +288,11 @@ class BasePage:
         Otherwise uses ``locator`` directly.
         """
         if value and locator.by == "name":
-            css = f'input[type="checkbox"][name="{locator.value}"][value="{value}"]'
+            css = (
+                f'input[type="checkbox"]'
+                f'[name="{_css_escape_attr(locator.value)}"]'
+                f'[value="{_css_escape_attr(value)}"]'
+            )
             target: LocatorDefinition = LocatorDefinition(by="css_selector", value=css)
         else:
             target = locator
@@ -297,7 +310,11 @@ class BasePage:
         Otherwise uses ``locator`` directly.
         """
         if value and locator.by == "name":
-            css = f'input[type="radio"][name="{locator.value}"][value="{value}"]'
+            css = (
+                f'input[type="radio"]'
+                f'[name="{_css_escape_attr(locator.value)}"]'
+                f'[value="{_css_escape_attr(value)}"]'
+            )
             target: LocatorDefinition = LocatorDefinition(by="css_selector", value=css)
         else:
             target = locator
