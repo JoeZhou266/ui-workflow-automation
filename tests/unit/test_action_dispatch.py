@@ -20,13 +20,14 @@ def _make_element(
     etype: ElementType = ElementType.BUTTON,
     action: ActionType = ActionType.CLICK,
     value=None,
+    locator: "LocatorDefinition | None" = None,
     **kwargs,
 ) -> ElementDefinition:
     return ElementDefinition(
         name=name,
         type=etype,
         action=action,
-        locator=_make_locator(),
+        locator=locator if locator is not None else _make_locator(),
         value=value,
         **kwargs,
     )
@@ -104,12 +105,12 @@ class TestElementActions:
     def test_check_action(self, executor, mock_page):
         el = _make_element(etype=ElementType.CHECKBOX, action=ActionType.CHECK)
         executor.execute(el)
-        mock_page.check.assert_called_once_with(el.locator, el.name)
+        mock_page.check.assert_called_once_with(el.locator, el.name, "")
 
     def test_uncheck_action(self, executor, mock_page):
         el = _make_element(etype=ElementType.CHECKBOX, action=ActionType.UNCHECK)
         executor.execute(el)
-        mock_page.uncheck.assert_called_once_with(el.locator, el.name)
+        mock_page.uncheck.assert_called_once_with(el.locator, el.name, "")
 
     def test_noop_action_does_nothing(self, executor, mock_page):
         el = _make_element(action=ActionType.NOOP)
@@ -158,6 +159,65 @@ class TestElementActions:
         page2.wait_for_visible.return_value = not_selected_el
         BasePage.select_radio(page2, _make_locator(), "radio-2")
         not_selected_el.click.assert_called_once()
+
+    def test_check_dispatch_passes_value(self, executor, mock_page):
+        """CHECK branch must forward the resolved value to page.check() as third arg."""
+        el = _make_element(
+            etype=ElementType.CHECKBOX,
+            action=ActionType.CHECK,
+            locator=_make_locator(by="name", value="hobby"),
+            value="sports",
+        )
+        executor.execute(el, value="sports")
+        mock_page.check.assert_called_once_with(el.locator, el.name, "sports")
+
+    def test_check_dispatch_no_value_passes_empty_string(self, executor, mock_page):
+        """CHECK branch without a value must pass empty string — backwards compatible."""
+        el = _make_element(etype=ElementType.CHECKBOX, action=ActionType.CHECK)
+        executor.execute(el)
+        mock_page.check.assert_called_once_with(el.locator, el.name, "")
+
+    def test_check_with_name_locator_and_value_builds_css_selector(self):
+        """BasePage.check() builds CSS selector when value+name present; idempotency: no click if already selected."""
+        from src.ui.base_page import BasePage
+        from src.models.workflow_models import LocatorDefinition
+
+        already_checked_el = MagicMock()
+        already_checked_el.is_selected.return_value = True
+
+        page = MagicMock(spec=BasePage)
+        page.wait_for_visible.return_value = already_checked_el
+
+        name_locator = LocatorDefinition(by="name", value="hobby")
+        BasePage.check(page, name_locator, "checkbox-1", "sports")
+
+        expected_css_locator = LocatorDefinition(
+            by="css_selector",
+            value='input[type="checkbox"][name="hobby"][value="sports"]',
+        )
+        page.wait_for_visible.assert_called_once_with(expected_css_locator)
+        already_checked_el.click.assert_not_called()
+
+    def test_uncheck_with_name_locator_and_value_builds_css_selector(self):
+        """BasePage.uncheck() builds CSS selector when value+name present; idempotency: no click if already unchecked."""
+        from src.ui.base_page import BasePage
+        from src.models.workflow_models import LocatorDefinition
+
+        already_unchecked_el = MagicMock()
+        already_unchecked_el.is_selected.return_value = False
+
+        page = MagicMock(spec=BasePage)
+        page.wait_for_visible.return_value = already_unchecked_el
+
+        name_locator = LocatorDefinition(by="name", value="hobby")
+        BasePage.uncheck(page, name_locator, "checkbox-1", "sports")
+
+        expected_css_locator = LocatorDefinition(
+            by="css_selector",
+            value='input[type="checkbox"][name="hobby"][value="sports"]',
+        )
+        page.wait_for_visible.assert_called_once_with(expected_css_locator)
+        already_unchecked_el.click.assert_not_called()
 
     def test_number_input_action(self, executor, mock_page):
         el = _make_element(
