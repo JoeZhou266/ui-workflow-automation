@@ -255,15 +255,35 @@ class BasePage:
         else:
             raise ElementActionError(f"Unknown select_by '{by}'", element_name=name)
 
-    def check(self, locator: LocatorDefinition, name: str = "") -> None:
-        """Check a checkbox if not already checked."""
-        el = self.wait_for_visible(locator)
+    def check(self, locator: LocatorDefinition, name: str = "", value: str = "") -> None:
+        """Check a checkbox if not already checked.
+
+        When ``value`` is set and ``locator.by == "name"``, locates the checkbox
+        via ``input[type="checkbox"][name="..."][value="..."]`` CSS selector.
+        Otherwise uses ``locator`` directly.
+        """
+        if value and locator.by == "name":
+            css = f'input[type="checkbox"][name="{locator.value}"][value="{value}"]'
+            target: LocatorDefinition = LocatorDefinition(by="css_selector", value=css)
+        else:
+            target = locator
+        el = self.wait_for_visible(target)
         if not el.is_selected():
             el.click()
 
-    def uncheck(self, locator: LocatorDefinition, name: str = "") -> None:
-        """Uncheck a checkbox if currently checked."""
-        el = self.wait_for_visible(locator)
+    def uncheck(self, locator: LocatorDefinition, name: str = "", value: str = "") -> None:
+        """Uncheck a checkbox if currently checked.
+
+        When ``value`` is set and ``locator.by == "name"``, locates the checkbox
+        via ``input[type="checkbox"][name="..."][value="..."]`` CSS selector.
+        Otherwise uses ``locator`` directly.
+        """
+        if value and locator.by == "name":
+            css = f'input[type="checkbox"][name="{locator.value}"][value="{value}"]'
+            target: LocatorDefinition = LocatorDefinition(by="css_selector", value=css)
+        else:
+            target = locator
+        el = self.wait_for_visible(target)
         if el.is_selected():
             el.click()
 
