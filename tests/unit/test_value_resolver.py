@@ -1,6 +1,9 @@
 """Unit tests for placeholder resolution in value_resolver — no browser required."""
 from __future__ import annotations
 
+import calendar
+import re
+from datetime import date, datetime
 from unittest.mock import patch
 import pytest
 
@@ -8,6 +11,7 @@ from src.actions.value_resolver import (
     PLACEHOLDER_REGISTRY,
     ValueResolver,
     generate_first_name,
+    generate_last_day_of_month,
     generate_last_name,
     generate_sin_number,
     resolve_dynamic_value,
@@ -161,3 +165,53 @@ class TestValueResolverIntegration:
         r = ValueResolver()
         with pytest.raises(ValueError, match="Unknown placeholder"):
             r.resolve("${bad_token}")
+
+
+# ---------------------------------------------------------------------------
+# Phase 9 — SC-1..SC-5: generate_last_day_of_month and registry integration
+# ---------------------------------------------------------------------------
+
+class TestLastDayOfMonth:
+    def test_format_is_mm_dd_yyyy(self):
+        result = generate_last_day_of_month()
+        assert re.fullmatch(r"\d{2}/\d{2}/\d{4}", result), f"Bad format: {result}"
+
+    def test_last_day_correct_for_current_month(self):
+        result = generate_last_day_of_month()
+        parsed = datetime.strptime(result, "%m/%d/%Y").date()
+        today = date.today()
+        assert parsed.month == today.month
+        assert parsed.year == today.year
+        assert parsed.day == calendar.monthrange(today.year, today.month)[1]
+
+    def test_leap_year_february(self):
+        with patch("src.actions.value_resolver.date") as mock_date:
+            mock_date.today.return_value = date(2024, 2, 1)
+            assert generate_last_day_of_month() == "02/29/2024"
+
+    def test_non_leap_year_february(self):
+        with patch("src.actions.value_resolver.date") as mock_date:
+            mock_date.today.return_value = date(2023, 2, 1)
+            assert generate_last_day_of_month() == "02/28/2023"
+
+    def test_month_with_30_days(self):
+        with patch("src.actions.value_resolver.date") as mock_date:
+            mock_date.today.return_value = date(2026, 4, 1)
+            assert generate_last_day_of_month() == "04/30/2026"
+
+    def test_month_with_31_days(self):
+        with patch("src.actions.value_resolver.date") as mock_date:
+            mock_date.today.return_value = date(2026, 1, 1)
+            assert generate_last_day_of_month() == "01/31/2026"
+
+    def test_registry_key_exists(self):
+        assert "last_day_of_month" in PLACEHOLDER_REGISTRY
+        assert callable(PLACEHOLDER_REGISTRY["last_day_of_month"])
+
+    def test_resolve_last_day_via_registry(self):
+        result = resolve_dynamic_value("${last_day_of_month}")
+        assert isinstance(result, str)
+        assert re.fullmatch(r"\d{2}/\d{2}/\d{4}", result) is not None
+
+    def test_passthrough_non_placeholder_unchanged(self):
+        assert resolve_dynamic_value("05/31/2026") == "05/31/2026"
