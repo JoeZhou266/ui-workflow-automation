@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import calendar
 import random
 import re
 import secrets
+from datetime import date, datetime
 from typing import Any, Callable, Dict, Optional
 
 # ---------------------------------------------------------------------------
@@ -96,6 +98,20 @@ def generate_last_name() -> str:
     return random.choice(_LAST_NAMES)
 
 
+def generate_last_day_of_month() -> str:
+    """Return the last calendar day of the current month as MM/DD/YYYY.
+
+    Uses ``calendar.monthrange()`` to determine the last day, which handles
+    all months correctly including leap-year February.
+
+    Returns:
+        A date string formatted as MM/DD/YYYY (e.g. ``"05/31/2026"``).
+    """
+    today = date.today()
+    last_day = calendar.monthrange(today.year, today.month)[1]
+    return datetime(today.year, today.month, last_day).strftime("%m/%d/%Y")
+
+
 # ---------------------------------------------------------------------------
 # Registry — maps placeholder token names to zero-argument generator callables.
 # Each call produces a fresh value; generators are not cached.
@@ -106,6 +122,7 @@ PLACEHOLDER_REGISTRY: Dict[str, Callable[[], str]] = {
     "sin_number": generate_sin_number,
     "first_name": generate_first_name,
     "last_name": generate_last_name,
+    "last_day_of_month": generate_last_day_of_month,
     "random_number": generate_random_number,
 }
 
