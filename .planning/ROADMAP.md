@@ -138,7 +138,10 @@ Plans:
   3. `${last_day_of_month}` in workflow JSON `value` resolves at action-dispatch time
   4. Handles all months correctly including leap-year February
   5. Unit tests cover: correct format, correct last-day value, passthrough unchanged for non-placeholder values
-**Plans**: 0 plans
+**Plans**: 1 plan
+
+Plans:
+- [ ] 09-01-PLAN.md — TDD: RED tests for generate_last_day_of_month import and TestLastDayOfMonth class; GREEN implementation adds calendar import, generator function, and PLACEHOLDER_REGISTRY entry
 
 ## Progress
 
