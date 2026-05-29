@@ -14,6 +14,7 @@ Data-driven Selenium automation framework that reads workflow definitions from J
 - [x] **Phase 6: Support execute_js_script Action Type** - execute arbitrary JavaScript from workflow JSON via `element.value` field
 - [x] **Phase 7: Support skip-if-not-visible** - SkipElementSignal exception + ActionFactory visibility probe + WorkflowEngine catch, records step as SKIPPED not FAILED
 - [x] **Phase 8: Support checkbox search by name+value** - transparent enhancement to CHECK/UNCHECK via CSS selector (mirrors select_radio pattern)
+- [ ] **Phase 9: Support last-day-of-month placeholder** - `${last_day_of_month}` generator returning MM/DD/YYYY of the last calendar day of the current month
 
 ## Phase Details
 
@@ -128,6 +129,17 @@ Plans:
 Plans:
 - [x] 08-01-PLAN.md — TDD: RED tests for value passthrough dispatch and CSS selector construction; GREEN implementation extends check/uncheck signatures and updates CHECK/UNCHECK dispatch branches
 
+### Phase 9: Support last-day-of-month placeholder
+**Goal**: Add a `${last_day_of_month}` placeholder to `PLACEHOLDER_REGISTRY` in `value_resolver.py` that returns the last calendar date of the current month formatted as `MM/DD/YYYY`. No schema changes — pure registry extension following the Phase 4 pattern.
+**Depends on**: Phase 4
+**Success Criteria** (what must be TRUE):
+  1. `generate_last_day_of_month()` returns a valid `MM/DD/YYYY` string for the last day of the current month
+  2. `PLACEHOLDER_REGISTRY["last_day_of_month"]` maps to the generator
+  3. `${last_day_of_month}` in workflow JSON `value` resolves at action-dispatch time
+  4. Handles all months correctly including leap-year February
+  5. Unit tests cover: correct format, correct last-day value, passthrough unchanged for non-placeholder values
+**Plans**: 0 plans
+
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
@@ -140,3 +152,4 @@ Plans:
 | 6. Support execute_js_script Action Type | 1/1 | Complete | 2026-05-25 |
 | 7. Support skip-if-not-visible | 1/1 | Complete | 2026-05-26 |
 | 8. Support checkbox search by name+value | 1/1 | Complete | 2026-05-26 |
+| 9. Support last-day-of-month placeholder | 0/1 | In Progress | — |
