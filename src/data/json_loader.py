@@ -17,7 +17,7 @@ def resolve_refs(
     data: object,
     base_dir: Path,
     _resolving: frozenset = frozenset(),
-    params: dict = {},
+    params: dict | None = None,
 ) -> object:
     """Recursively resolve ``{"$ref": "<path>"}`` nodes in *data*.
 
@@ -39,6 +39,8 @@ def resolve_refs(
         ValueError: If a circular reference is detected.
         WorkflowValidationError: If a condition references an undefined parameter.
     """
+    if params is None:
+        params = {}
     if isinstance(data, dict):
         if "$ref" in data:
             ref_path = (base_dir / data["$ref"]).resolve()
