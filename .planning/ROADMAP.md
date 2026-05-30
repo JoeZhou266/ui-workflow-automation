@@ -16,6 +16,7 @@ Data-driven Selenium automation framework that reads workflow definitions from J
 - [x] **Phase 8: Support checkbox search by name+value** - transparent enhancement to CHECK/UNCHECK via CSS selector (mirrors select_radio pattern)
 - [x] **Phase 9: Support last-day-of-month placeholder** - `${last_day_of_month}` generator returning MM/DD/YYYY of the last calendar day of the current month
 - [x] **Phase 10: Support ${env:KEY} config placeholder** - `${env:KEY}` namespace resolving to env YAML config values so account numbers, credentials, and env-specific IDs live in config rather than workflow JSON (completed 2026-05-30)
+- [ ] **Phase 11: Support Workflow Parameters + Conditional $ref** - `parameters` block at workflow root with name/value pairs; `$ref` nodes may carry a `condition` field (`${param} == 'value'` or `!=`) evaluated at load time — false condition silently omits the node from its parent list (tabs/pages/sections)
 
 ## Phase Details
 
@@ -157,6 +158,19 @@ Plans:
 Plans:
 - [x] 10-01-PLAN.md — TDD: RED tests for configure_env_resolver import and TestEnvPlaceholder class; GREEN implementation adds _ENV_CONFIG singleton, configure_env_resolver(), env: branch in resolve_dynamic_value(), and AppConfig wiring
 
+### Phase 11: Support Workflow Parameters + Conditional $ref
+**Goal**: Add a `parameters` list (name/value pairs) to `WorkflowDefinition` that is resolved at load time. Extend `resolve_refs()` to read an optional `condition` sibling key on `$ref` nodes — condition format is `${param_name} == 'value'` or `${param_name} != 'value'`. When the condition evaluates to false the node is silently omitted from its parent list. Parameter values may contain `${env:KEY}` placeholders (resolved before condition evaluation).
+**Depends on**: Phase 1, Phase 10
+**Success Criteria** (what must be TRUE):
+  1. `WorkflowDefinition.parameters` accepts a list of `{name, value}` objects
+  2. `resolve_refs()` evaluates a `condition` sibling key on `$ref` nodes using the workflow parameters
+  3. False condition silently omits the node from its parent list (tabs/pages/sections)
+  4. Undefined parameter name in condition raises `WorkflowValidationError` at load time
+  5. Parameter values containing `${env:KEY}` are resolved before condition evaluation
+  6. `$ref` nodes without `condition` resolve unchanged (backwards compatible)
+  7. Unit tests cover: condition true, condition false, `!=` operator, undefined param error, env placeholder in value
+**Plans**: Not started
+
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
@@ -171,3 +185,4 @@ Plans:
 | 8. Support checkbox search by name+value | 1/1 | Complete | 2026-05-26 |
 | 9. Support last-day-of-month placeholder | 1/1 | Complete | 2026-05-29 |
 | 10. Support ${env:KEY} config placeholder | 1/1 | Complete    | 2026-05-30 |
+| 11. Support Workflow Parameters + Conditional $ref | 0/? | Not started | — |
