@@ -88,8 +88,12 @@ class VideoManager:
             self._proc.stdin.close()
             self._proc.wait(timeout=10)
         except (BrokenPipeError, OSError):
-            # Process died before we could write
-            pass
+            # Process died before we could write; reap it to avoid zombie.
+            try:
+                self._proc.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                self._proc.kill()
+                self._proc.wait()
         except subprocess.TimeoutExpired:
             logger.warning("ffmpeg did not exit cleanly — killing process")
             self._proc.kill()
