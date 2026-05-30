@@ -118,13 +118,13 @@ def video_recorder(request, app_config: AppConfig, driver):
     setup_report = report.get("setup", _Pass())
     test_failed = call_report.failed or setup_report.failed
 
+    manager.stop()
+
     if video_path:
         if test_failed:
             _log.info("Video retained (test failed): %s", video_path)
         else:
             manager.delete(video_path)
-
-    manager.stop()
 
 
 @pytest.fixture(scope="function")
