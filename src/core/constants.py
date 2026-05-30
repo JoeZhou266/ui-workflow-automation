@@ -15,6 +15,10 @@ DEFAULT_WINDOW_HEIGHT: int = 1080
 SCREENSHOT_DIR: str = "reports/screenshots"
 SCREENSHOT_DATE_FORMAT: str = "%Y%m%d_%H%M%S"
 
+# Video
+VIDEO_DIR: str = "reports/videos"
+VIDEO_DATE_FORMAT: str = "%Y%m%d_%H%M%S"
+
 # Retry
 DEFAULT_STALE_RETRY_COUNT: int = 3
 

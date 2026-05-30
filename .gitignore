@@ -12,8 +12,9 @@ venv/
 env/
 log/*.log
 
-# Reports / screenshots (keep dir, ignore contents)
+# Reports / screenshots / videos (keep dir, ignore contents)
 reports/screenshots/
+reports/videos/
 reports/*.html
 reports/*.xml
 allure-results/

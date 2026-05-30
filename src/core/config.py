@@ -17,6 +17,7 @@ from src.core.constants import (
     DEFAULT_WINDOW_HEIGHT,
     DEFAULT_WINDOW_WIDTH,
     SCREENSHOT_DIR,
+    VIDEO_DIR,
 )
 from src.actions.value_resolver import configure_env_resolver
 
@@ -50,6 +51,7 @@ class AppConfig:
             self._resolve("POLL_FREQUENCY_MS", "poll_frequency_ms", DEFAULT_POLL_FREQUENCY_MS)
         )
         self.screenshots_dir: str = self._resolve("SCREENSHOTS_DIR", "screenshots_dir", SCREENSHOT_DIR)
+        self.record_video: bool = self._resolve_bool("RECORD_VIDEO", "record_video", False)
         self.log_level: str = self._resolve("LOG_LEVEL", "log_level", "INFO").upper()
         self.window_width: int = int(
             self._resolve("WINDOW_WIDTH", "window_width", DEFAULT_WINDOW_WIDTH)
