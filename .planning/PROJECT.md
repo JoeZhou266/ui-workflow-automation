@@ -10,13 +10,14 @@ A data-driven Selenium browser automation framework for Python 3.9.13. Workflow 
 
 ## Current State
 
-Shipped **v1.0 Foundation Framework** on 2026-05-30.
+Shipped **v1.0 Foundation Framework** on 2026-05-30. **v1.1 Phase 12 complete** on 2026-05-30.
 
-- 11 phases complete, 226 unit tests passing
+- 12 phases complete, 284 unit tests passing
 - Full element type coverage: checkbox, radio, select, number, email, JS execution
 - Dynamic placeholder system: SIN, names, last-day-of-month, env config values
 - Workflow composition: `$ref` file references + parameters + conditional `$ref` for branch workflows
 - Execution control: wait_seconds, skip_if_not_visible, execute_js_script
+- Video capture: ffmpeg-based screen recording in smoke tests (delete on pass, retain on fail)
 
 Tech stack: Python 3.9.13, Selenium, Pydantic v2, pytest, PyYAML, python-dotenv.
 
@@ -35,6 +36,10 @@ Tech stack: Python 3.9.13, Selenium, Pydantic v2, pytest, PyYAML, python-dotenv.
 - ✓ `${last_day_of_month}` date placeholder — v1.0
 - ✓ `${env:KEY}` YAML config placeholder for externalized credentials — v1.0
 - ✓ Workflow parameters + conditional `$ref` for workflow composition — v1.0
+
+### Validated (v1.1)
+
+- ✓ Video capture via ffmpeg for smoke test sessions (`record_video` flag, `VideoManager`, `video_recorder` pytest fixture) — v1.1 Phase 12
 
 ### Active (v1.1 candidates)
 

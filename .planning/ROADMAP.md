@@ -29,7 +29,7 @@ Full phase details: `.planning/milestones/v1.0-ROADMAP.md`
 <details open>
 <summary>🚧 v1.1 Observability & Reporting (Phase 12+) — IN PROGRESS</summary>
 
-- [ ] Phase 12: Support Video Capture for Failed Tests (0/3 plans) — planned
+- [x] Phase 12: Support Video Capture for Failed Tests (3/3 plans) — completed 2026-05-30
 
 Plans:
 - [x] 12-01-PLAN.md — Core infrastructure: VideoManager, constants, AppConfig field, env YAML configs
