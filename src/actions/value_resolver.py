@@ -98,18 +98,24 @@ def generate_last_name() -> str:
     return random.choice(_LAST_NAMES)
 
 
-def generate_last_day_of_month() -> str:
-    """Return the last calendar day of the current month as MM/DD/YYYY.
+def generate_last_day_of_next_month() -> str:
+    """Return the last calendar day of next month as MM/DD/YYYY.
 
     Uses ``calendar.monthrange()`` to determine the last day, which handles
-    all months correctly including leap-year February.
+    all months correctly including leap-year February and December → January
+    year-wrap.
 
     Returns:
-        A date string formatted as MM/DD/YYYY (e.g. ``"05/31/2026"``).
+        A date string formatted as MM/DD/YYYY (e.g. ``"06/30/2026"`` when
+        called in May 2026).
     """
     today = date.today()
-    last_day = calendar.monthrange(today.year, today.month)[1]
-    return datetime(today.year, today.month, last_day).strftime("%m/%d/%Y")
+    if today.month == 12:
+        next_year, next_month = today.year + 1, 1
+    else:
+        next_year, next_month = today.year, today.month + 1
+    last_day = calendar.monthrange(next_year, next_month)[1]
+    return datetime(next_year, next_month, last_day).strftime("%m/%d/%Y")
 
 
 # ---------------------------------------------------------------------------
@@ -122,7 +128,7 @@ PLACEHOLDER_REGISTRY: Dict[str, Callable[[], str]] = {
     "sin_number": generate_sin_number,
     "first_name": generate_first_name,
     "last_name": generate_last_name,
-    "last_day_of_month": generate_last_day_of_month,
+    "last_day_of_next_month": generate_last_day_of_next_month,
     "random_number": generate_random_number,
 }
 

@@ -346,7 +346,7 @@ Any `value` field in an `ElementDefinition` that contains a `${token}` pattern i
 | `${first_name}` | Random first name from a built-in list | `"Olivia"` |
 | `${last_name}` | Random last name from a built-in list | `"Martinez"` |
 | `${random_number}` | Random 7-digit number string | `"3847261"` |
-| `${last_day_of_month}` | Last calendar day of the **current month** as `MM/DD/YYYY`. Correctly handles 28/29/30/31-day months including leap-year February. | `"05/31/2026"` |
+| `${last_day_of_next_month}` | Last calendar day of **next month** as `MM/DD/YYYY`. Correctly handles 28/29/30/31-day months including leap-year February and December → January year-wrap. | `"06/30/2026"` (called in May 2026) |
 
 #### Usage examples
 
@@ -356,7 +356,7 @@ Any `value` field in an `ElementDefinition` that contains a `${token}` pattern i
   "type": "text",
   "action": "input",
   "locator": { "by": "id", "value": "end-date" },
-  "value": "${last_day_of_month}"
+  "value": "${last_day_of_next_month}"
 }
 ```
 

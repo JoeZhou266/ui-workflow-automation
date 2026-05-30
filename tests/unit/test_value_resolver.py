@@ -11,7 +11,7 @@ from src.actions.value_resolver import (
     PLACEHOLDER_REGISTRY,
     ValueResolver,
     generate_first_name,
-    generate_last_day_of_month,
+    generate_last_day_of_next_month,
     generate_last_name,
     generate_sin_number,
     resolve_dynamic_value,
@@ -168,48 +168,62 @@ class TestValueResolverIntegration:
 
 
 # ---------------------------------------------------------------------------
-# Phase 9 — SC-1..SC-5: generate_last_day_of_month and registry integration
+# Phase 9 — SC-1..SC-5: generate_last_day_of_next_month and registry integration
 # ---------------------------------------------------------------------------
 
-class TestLastDayOfMonth:
+class TestLastDayOfNextMonth:
     def test_format_is_mm_dd_yyyy(self):
-        result = generate_last_day_of_month()
+        result = generate_last_day_of_next_month()
         assert re.fullmatch(r"\d{2}/\d{2}/\d{4}", result), f"Bad format: {result}"
 
-    def test_last_day_correct_for_current_month(self):
-        result = generate_last_day_of_month()
+    def test_last_day_correct_for_next_month(self):
+        result = generate_last_day_of_next_month()
         parsed = datetime.strptime(result, "%m/%d/%Y").date()
         today = date.today()
-        assert parsed.month == today.month
-        assert parsed.year == today.year
-        assert parsed.day == calendar.monthrange(today.year, today.month)[1]
+        if today.month == 12:
+            exp_year, exp_month = today.year + 1, 1
+        else:
+            exp_year, exp_month = today.year, today.month + 1
+        assert parsed.month == exp_month
+        assert parsed.year == exp_year
+        assert parsed.day == calendar.monthrange(exp_year, exp_month)[1]
 
-    def test_leap_year_february(self):
+    def test_leap_year_february_next_month(self):
+        # today = Jan 2024 → next month = Feb 2024 (leap year)
         with patch("src.actions.value_resolver.date") as mock_date:
-            mock_date.today.return_value = date(2024, 2, 1)
-            assert generate_last_day_of_month() == "02/29/2024"
+            mock_date.today.return_value = date(2024, 1, 1)
+            assert generate_last_day_of_next_month() == "02/29/2024"
 
-    def test_non_leap_year_february(self):
+    def test_non_leap_year_february_next_month(self):
+        # today = Jan 2023 → next month = Feb 2023 (non-leap)
         with patch("src.actions.value_resolver.date") as mock_date:
-            mock_date.today.return_value = date(2023, 2, 1)
-            assert generate_last_day_of_month() == "02/28/2023"
+            mock_date.today.return_value = date(2023, 1, 1)
+            assert generate_last_day_of_next_month() == "02/28/2023"
 
     def test_month_with_30_days(self):
+        # today = Mar 2026 → next month = Apr 2026 (30 days)
         with patch("src.actions.value_resolver.date") as mock_date:
-            mock_date.today.return_value = date(2026, 4, 1)
-            assert generate_last_day_of_month() == "04/30/2026"
+            mock_date.today.return_value = date(2026, 3, 1)
+            assert generate_last_day_of_next_month() == "04/30/2026"
 
     def test_month_with_31_days(self):
+        # today = Nov 2026 → next month = Dec 2026 (31 days)
         with patch("src.actions.value_resolver.date") as mock_date:
-            mock_date.today.return_value = date(2026, 1, 1)
-            assert generate_last_day_of_month() == "01/31/2026"
+            mock_date.today.return_value = date(2026, 11, 1)
+            assert generate_last_day_of_next_month() == "12/31/2026"
+
+    def test_december_wraps_to_january_next_year(self):
+        # today = Dec 2026 → next month = Jan 2027 (31 days, year rolls over)
+        with patch("src.actions.value_resolver.date") as mock_date:
+            mock_date.today.return_value = date(2026, 12, 1)
+            assert generate_last_day_of_next_month() == "01/31/2027"
 
     def test_registry_key_exists(self):
-        assert "last_day_of_month" in PLACEHOLDER_REGISTRY
-        assert callable(PLACEHOLDER_REGISTRY["last_day_of_month"])
+        assert "last_day_of_next_month" in PLACEHOLDER_REGISTRY
+        assert callable(PLACEHOLDER_REGISTRY["last_day_of_next_month"])
 
     def test_resolve_last_day_via_registry(self):
-        result = resolve_dynamic_value("${last_day_of_month}")
+        result = resolve_dynamic_value("${last_day_of_next_month}")
         assert isinstance(result, str)
         assert re.fullmatch(r"\d{2}/\d{2}/\d{4}", result) is not None
 
