@@ -16,7 +16,7 @@ Data-driven Selenium automation framework that reads workflow definitions from J
 - [x] **Phase 8: Support checkbox search by name+value** - transparent enhancement to CHECK/UNCHECK via CSS selector (mirrors select_radio pattern)
 - [x] **Phase 9: Support last-day-of-month placeholder** - `${last_day_of_month}` generator returning MM/DD/YYYY of the last calendar day of the current month
 - [x] **Phase 10: Support ${env:KEY} config placeholder** - `${env:KEY}` namespace resolving to env YAML config values so account numbers, credentials, and env-specific IDs live in config rather than workflow JSON (completed 2026-05-30)
-- [ ] **Phase 11: Support Workflow Parameters + Conditional $ref** - `parameters` block at workflow root with name/value pairs; `$ref` nodes may carry a `condition` field (`${param} == 'value'` or `!=`) evaluated at load time — false condition silently omits the node from its parent list (tabs/pages/sections)
+- [x] **Phase 11: Support Workflow Parameters + Conditional $ref** - `parameters` block at workflow root with name/value pairs; `$ref` nodes may carry a `condition` field (`${param} == 'value'` or `!=`) evaluated at load time — false condition silently omits the node from its parent list (tabs/pages/sections) (completed 2026-05-29)
 
 ## Phase Details
 
@@ -172,8 +172,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 11-01-PLAN.md — Schema + loader: add ParameterDefinition model, condition_evaluator.py, extend resolve_refs() and WorkflowLoader.load()
-- [ ] 11-02-PLAN.md — Unit tests: TestParameterDefinition, TestEvaluateCondition, TestConditionalRef covering all 7 success criteria
+- [x] 11-01-PLAN.md — Schema + loader: add ParameterDefinition model, condition_evaluator.py, extend resolve_refs() and WorkflowLoader.load()
+- [x] 11-02-PLAN.md — Unit tests: TestParameterDefinition, TestEvaluateCondition, TestConditionalRef covering all 7 success criteria
 
 ## Progress
 
@@ -189,4 +189,4 @@ Plans:
 | 8. Support checkbox search by name+value | 1/1 | Complete | 2026-05-26 |
 | 9. Support last-day-of-month placeholder | 1/1 | Complete | 2026-05-29 |
 | 10. Support ${env:KEY} config placeholder | 1/1 | Complete    | 2026-05-30 |
-| 11. Support Workflow Parameters + Conditional $ref | 0/2 | In progress | — |
+| 11. Support Workflow Parameters + Conditional $ref | 2/2 | Complete | 2026-05-29 |
