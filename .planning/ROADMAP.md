@@ -169,7 +169,11 @@ Plans:
   5. Parameter values containing `${env:KEY}` are resolved before condition evaluation
   6. `$ref` nodes without `condition` resolve unchanged (backwards compatible)
   7. Unit tests cover: condition true, condition false, `!=` operator, undefined param error, env placeholder in value
-**Plans**: Not started
+**Plans**: 2 plans
+
+Plans:
+- [ ] 11-01-PLAN.md — Schema + loader: add ParameterDefinition model, condition_evaluator.py, extend resolve_refs() and WorkflowLoader.load()
+- [ ] 11-02-PLAN.md — Unit tests: TestParameterDefinition, TestEvaluateCondition, TestConditionalRef covering all 7 success criteria
 
 ## Progress
 
@@ -185,4 +189,4 @@ Plans:
 | 8. Support checkbox search by name+value | 1/1 | Complete | 2026-05-26 |
 | 9. Support last-day-of-month placeholder | 1/1 | Complete | 2026-05-29 |
 | 10. Support ${env:KEY} config placeholder | 1/1 | Complete    | 2026-05-30 |
-| 11. Support Workflow Parameters + Conditional $ref | 0/? | Not started | — |
+| 11. Support Workflow Parameters + Conditional $ref | 0/2 | In progress | — |
