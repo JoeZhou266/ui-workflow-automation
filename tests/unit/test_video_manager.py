@@ -187,7 +187,11 @@ class TestVideoManagerStop:
         mock_proc = MagicMock(spec=subprocess.Popen)
         mock_proc.poll.return_value = None
         mock_proc.stdin = MagicMock()
-        mock_proc.wait.side_effect = subprocess.TimeoutExpired(cmd="ffmpeg", timeout=10)
+        # Only raise on first call (timeout=10); bare wait() after kill should succeed
+        mock_proc.wait.side_effect = [
+            subprocess.TimeoutExpired(cmd="ffmpeg", timeout=10),
+            None,
+        ]
 
         m = VideoManager()
         m._proc = mock_proc
@@ -219,8 +223,9 @@ class TestVideoManagerStop:
         m._proc = mock_proc
         m.stop()
 
-        # stdin.write should NOT be called
-        mock_proc.stdin.write.assert_not_called()
+        # Process already terminated — _proc should be cleared, wait not called
+        assert m._proc is None
+        mock_proc.wait.assert_not_called()
 
 
 class TestVideoManagerDelete:
