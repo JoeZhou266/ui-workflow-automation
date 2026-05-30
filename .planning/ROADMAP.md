@@ -152,7 +152,10 @@ Plans:
   2. Missing keys raise a clear error at resolution time (not silently pass through)
   3. Works alongside existing placeholders — `${sin_number}`, `${env:BASE_URL}`, etc. can all appear in the same workflow
   4. Unit tests cover: successful resolution, missing key error, passthrough of non-placeholder strings
-**Plans**: 0 plans
+**Plans**: 1 plan
+
+Plans:
+- [ ] 10-01-PLAN.md — TDD: RED tests for configure_env_resolver import and TestEnvPlaceholder class; GREEN implementation adds _ENV_CONFIG singleton, configure_env_resolver(), env: branch in resolve_dynamic_value(), and AppConfig wiring
 
 ## Progress
 
@@ -167,4 +170,4 @@ Plans:
 | 7. Support skip-if-not-visible | 1/1 | Complete | 2026-05-26 |
 | 8. Support checkbox search by name+value | 1/1 | Complete | 2026-05-26 |
 | 9. Support last-day-of-month placeholder | 1/1 | Complete | 2026-05-29 |
-| 10. Support ${env:KEY} config placeholder | 0/0 | Planned | — |
+| 10. Support ${env:KEY} config placeholder | 0/1 | In Progress | — |
