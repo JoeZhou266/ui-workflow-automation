@@ -32,9 +32,9 @@ Full phase details: `.planning/milestones/v1.0-ROADMAP.md`
 - [ ] Phase 12: Support Video Capture for Failed Tests (0/3 plans) — planned
 
 Plans:
-- [ ] 12-01-PLAN.md — Core infrastructure: VideoManager, constants, AppConfig field, env YAML configs
-- [ ] 12-02-PLAN.md — Pytest integration: pytest_runtest_makereport hook + video_recorder fixture
-- [ ] 12-03-PLAN.md — Tests + .gitignore: unit tests for VideoManager, .gitignore update
+- [x] 12-01-PLAN.md — Core infrastructure: VideoManager, constants, AppConfig field, env YAML configs
+- [x] 12-02-PLAN.md — Pytest integration: pytest_runtest_makereport hook + video_recorder fixture
+- [x] 12-03-PLAN.md — Tests + .gitignore: unit tests for VideoManager, .gitignore update
 
 </details>
 
@@ -53,4 +53,4 @@ Plans:
 | 9. Support last-day-of-month placeholder | v1.0 | 1/1 | Complete | 2026-05-29 |
 | 10. Support ${env:KEY} config placeholder | v1.0 | 1/1 | Complete | 2026-05-30 |
 | 11. Support Workflow Parameters + Conditional $ref | v1.0 | 2/2 | Complete | 2026-05-29 |
-| 12. Support Video Capture for Failed Tests | v1.1 | 0/3 | In Progress | — |
+| 12. Support Video Capture for Failed Tests | v1.1 | 3/3 | Complete   | 2026-05-30 |
