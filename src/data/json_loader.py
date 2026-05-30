@@ -166,6 +166,7 @@ class WorkflowLoader:
     def load_raw(path: Union[str, Path]) -> dict:
         """Load a JSON file, resolve $ref references, and return the raw dict."""
         file_path = Path(path)
+        str_path = str(file_path)
         try:
             raw = file_path.read_text(encoding="utf-8")
             data = json.loads(raw)
@@ -173,8 +174,17 @@ class WorkflowLoader:
             raw_params = data.get("parameters") if isinstance(data, dict) else None
             if raw_params:
                 for p in raw_params:
+                    if not isinstance(p, dict) or "name" not in p or "value" not in p:
+                        raise WorkflowValidationError(
+                            f"Each entry in 'parameters' must be an object with 'name' and 'value' keys; "
+                            f"got: {p!r}",
+                            path=str_path,
+                        )
                     resolved_value = resolve_dynamic_value(p["value"])
                     params[p["name"]] = resolved_value
             return resolve_refs(data, file_path.parent, params=params)
-        except (OSError, json.JSONDecodeError) as exc:
-            raise WorkflowValidationError(str(exc), path=str(file_path)) from exc
+        except WorkflowValidationError:
+            raise  # Already typed — re-raise as-is
+        except (OSError, json.JSONDecodeError, FileNotFoundError, ValueError,
+                KeyError, TypeError) as exc:
+            raise WorkflowValidationError(str(exc), path=str_path) from exc
