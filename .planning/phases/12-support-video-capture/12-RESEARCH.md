@@ -501,22 +501,22 @@ All tests are unit-level (no real browser, no real ffmpeg required) using `monke
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Video file size management**
    - What we know: H.264 at `-crf 28 -framerate 15` produces reasonable sizes
    - What's unclear: No project retention policy defined (deferred per CONTEXT.md)
-   - Recommendation: Proceed with current settings; add a note in `.gitignore` comment
+   - RESOLVED: Proceed with `-crf 28 -framerate 15` defaults. Retention policy deferred per CONTEXT.md deferred ideas section — no action needed in this phase.
 
 2. **Wayland support**
    - What we know: `x11grab` does not work on Wayland; `wf-recorder` is an alternative
    - What's unclear: Developer machines may use Wayland (Ubuntu 22+, Fedora 38+)
-   - Recommendation: Detect `$WAYLAND_DISPLAY` env var; if set, log WARNING and skip recording (same as headless). Do not add `wf-recorder` dependency.
+   - RESOLVED: Detect `$WAYLAND_DISPLAY` env var in `VideoManager._build_cmd()`. If set on Linux, log WARNING and return `None` (skip recording). Do not add `wf-recorder` dependency. Implemented in `_build_cmd()`.
 
 3. **macOS Screen Recording permission**
    - What we know: Requires one-time system permission grant
    - What's unclear: Will fail silently (black video) if not granted, not with an error
-   - Recommendation: Document in README/CLAUDE.md; add a log message "If video is blank, grant Screen Recording permission"
+   - RESOLVED: Add `logger.info("If video is blank, grant Screen Recording permission to your terminal in System Settings > Privacy & Security")` to the macOS branch of `_build_cmd()`. Document in CLAUDE.md if needed. Not a code fix — OS-level requirement.
 
 ---
 
