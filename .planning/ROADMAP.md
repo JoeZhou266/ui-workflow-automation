@@ -170,4 +170,4 @@ Plans:
 | 7. Support skip-if-not-visible | 1/1 | Complete | 2026-05-26 |
 | 8. Support checkbox search by name+value | 1/1 | Complete | 2026-05-26 |
 | 9. Support last-day-of-month placeholder | 1/1 | Complete | 2026-05-29 |
-| 10. Support ${env:KEY} config placeholder | 1/1 | Complete   | 2026-05-30 |
+| 10. Support ${env:KEY} config placeholder | 1/1 | Complete    | 2026-05-30 |
