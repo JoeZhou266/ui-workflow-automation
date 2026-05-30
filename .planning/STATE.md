@@ -18,15 +18,17 @@ progress:
 
 ## Project Reference
 
+See: .planning/PROJECT.md (updated 2026-05-30)
+
 **Core value:** JSON-driven browser automation — zero Python per new workflow
-**Current focus:** Phase 11 — support-workflow-parameters-conditional-ref
+**Current focus:** Planning next milestone (v1.1)
 
 ## Current Position
 
-Phase: 11
-Plan: Complete (2/2)
-Status: All phases complete — milestone v1.0 done
-Last activity: 2026-05-29
+Phase: 11 (final)
+Milestone: v1.0 SHIPPED 2026-05-30
+Status: Milestone closed — planning v1.1
+Last activity: 2026-05-30
 
 Progress: [███████████████] 100%
 
@@ -48,6 +50,17 @@ None.
 ### Blockers/Concerns
 
 None.
+
+## Deferred Items
+
+Items acknowledged and deferred at milestone close on 2026-05-30:
+
+| Category | Item | Status |
+|----------|------|--------|
+| uat | Phase 03: 03-HUMAN-UAT.md — 2 pending browser test scenarios | partial |
+| verification | Phase 03: 03-VERIFICATION.md — requires live ChromeDriver execution | human_needed |
+
+Note: Both items require real browser execution (new window context persistence, SWITCH_TO_NEW_WINDOW "window" vs "tab" type hint). Deferred to v1.1 smoke testing.
 
 ### Roadmap Evolution
 
