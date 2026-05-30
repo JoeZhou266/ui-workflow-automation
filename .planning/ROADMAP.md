@@ -15,7 +15,7 @@ Data-driven Selenium automation framework that reads workflow definitions from J
 - [x] **Phase 7: Support skip-if-not-visible** - SkipElementSignal exception + ActionFactory visibility probe + WorkflowEngine catch, records step as SKIPPED not FAILED
 - [x] **Phase 8: Support checkbox search by name+value** - transparent enhancement to CHECK/UNCHECK via CSS selector (mirrors select_radio pattern)
 - [x] **Phase 9: Support last-day-of-month placeholder** - `${last_day_of_month}` generator returning MM/DD/YYYY of the last calendar day of the current month
-- [ ] **Phase 10: Support ${env:KEY} config placeholder** - `${env:KEY}` namespace resolving to env YAML config values so account numbers, credentials, and env-specific IDs live in config rather than workflow JSON
+- [x] **Phase 10: Support ${env:KEY} config placeholder** - `${env:KEY}` namespace resolving to env YAML config values so account numbers, credentials, and env-specific IDs live in config rather than workflow JSON (completed 2026-05-30)
 
 ## Phase Details
 
@@ -155,7 +155,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 10-01-PLAN.md — TDD: RED tests for configure_env_resolver import and TestEnvPlaceholder class; GREEN implementation adds _ENV_CONFIG singleton, configure_env_resolver(), env: branch in resolve_dynamic_value(), and AppConfig wiring
+- [x] 10-01-PLAN.md — TDD: RED tests for configure_env_resolver import and TestEnvPlaceholder class; GREEN implementation adds _ENV_CONFIG singleton, configure_env_resolver(), env: branch in resolve_dynamic_value(), and AppConfig wiring
 
 ## Progress
 
@@ -170,4 +170,4 @@ Plans:
 | 7. Support skip-if-not-visible | 1/1 | Complete | 2026-05-26 |
 | 8. Support checkbox search by name+value | 1/1 | Complete | 2026-05-26 |
 | 9. Support last-day-of-month placeholder | 1/1 | Complete | 2026-05-29 |
-| 10. Support ${env:KEY} config placeholder | 0/1 | In Progress | — |
+| 10. Support ${env:KEY} config placeholder | 1/1 | Complete   | 2026-05-30 |
