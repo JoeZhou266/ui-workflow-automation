@@ -98,25 +98,15 @@ class TestVideoRecorderBehavior:
 
         return request
 
-    def _run_fixture(self, mock_app_config, mock_driver, request, video_path_return):
-        """Drive the video_recorder generator fixture to completion."""
-        with patch("src.utils.videos.VideoManager") as MockVideoManagerClass:
-            mock_manager = MagicMock()
-            MockVideoManagerClass.return_value = mock_manager
-            mock_manager.start.return_value = video_path_return
+    def _call_fixture(self, request, mock_app_config, mock_driver):
+        """Return the raw generator from the video_recorder fixture function.
 
-            gen = conftest.video_recorder.__wrapped__(request, mock_app_config, mock_driver) \
-                if hasattr(conftest.video_recorder, "__wrapped__") \
-                else conftest.video_recorder(request, mock_app_config, mock_driver)
-
-            yielded = next(gen)
-
-            try:
-                next(gen)
-            except StopIteration:
-                pass
-
-            return mock_manager, yielded
+        In pytest 8.x, @pytest.fixture wraps functions in FixtureFunctionDefinition
+        and prevents direct calls. We access __wrapped__ to get the raw generator
+        function for unit-testing the teardown logic in isolation.
+        """
+        raw_fn = conftest.video_recorder.__wrapped__
+        return raw_fn(request, mock_app_config, mock_driver)
 
     def test_start_passes_headless_when_headless_true(self, mock_app_config, mock_driver):
         """When headless=True, start() is called with headless=True (or not app_config.record_video equivalent)."""
@@ -129,7 +119,7 @@ class TestVideoRecorderBehavior:
             MockVideoManagerClass.return_value = mock_manager
             mock_manager.start.return_value = None
 
-            gen = conftest.video_recorder(request, mock_app_config, mock_driver)
+            gen = self._call_fixture(request, mock_app_config, mock_driver)
             next(gen)
             try:
                 next(gen)
@@ -154,7 +144,7 @@ class TestVideoRecorderBehavior:
             MockVideoManagerClass.return_value = mock_manager
             mock_manager.start.return_value = None  # no video
 
-            gen = conftest.video_recorder(request, mock_app_config, mock_driver)
+            gen = self._call_fixture(request, mock_app_config, mock_driver)
             next(gen)
             try:
                 next(gen)
@@ -173,7 +163,7 @@ class TestVideoRecorderBehavior:
             MockVideoManagerClass.return_value = mock_manager
             mock_manager.start.return_value = video_path
 
-            gen = conftest.video_recorder(request, mock_app_config, mock_driver)
+            gen = self._call_fixture(request, mock_app_config, mock_driver)
             next(gen)
             try:
                 next(gen)
@@ -193,7 +183,7 @@ class TestVideoRecorderBehavior:
             MockVideoManagerClass.return_value = mock_manager
             mock_manager.start.return_value = video_path
 
-            gen = conftest.video_recorder(request, mock_app_config, mock_driver)
+            gen = self._call_fixture(request, mock_app_config, mock_driver)
             next(gen)
             try:
                 next(gen)
@@ -212,7 +202,7 @@ class TestVideoRecorderBehavior:
             MockVideoManagerClass.return_value = mock_manager
             mock_manager.start.return_value = None
 
-            gen = conftest.video_recorder(request, mock_app_config, mock_driver)
+            gen = self._call_fixture(request, mock_app_config, mock_driver)
             next(gen)
             try:
                 next(gen)
@@ -231,7 +221,7 @@ class TestVideoRecorderBehavior:
             MockVideoManagerClass.return_value = mock_manager
             mock_manager.start.return_value = video_path
 
-            gen = conftest.video_recorder(request, mock_app_config, mock_driver)
+            gen = self._call_fixture(request, mock_app_config, mock_driver)
             next(gen)
             # Should not raise
             try:
@@ -252,7 +242,7 @@ class TestVideoRecorderBehavior:
             MockVideoManagerClass.return_value = mock_manager
             mock_manager.start.return_value = video_path
 
-            gen = conftest.video_recorder(request, mock_app_config, mock_driver)
+            gen = self._call_fixture(request, mock_app_config, mock_driver)
             next(gen)
             try:
                 next(gen)
