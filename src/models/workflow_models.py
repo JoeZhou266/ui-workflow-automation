@@ -136,6 +136,17 @@ class TabDefinition(BaseModel):
         return sorted(self.pages, key=lambda p: p.order)
 
 
+class ParameterDefinition(BaseModel):
+    """A named string parameter declared at the workflow root level.
+
+    Parameter values may contain ``${env:KEY}`` placeholders resolved at load
+    time before condition evaluation.
+    """
+
+    name: str = Field(..., description="Parameter name referenced in conditions as ${name}")
+    value: str = Field(..., description="Parameter value; may contain ${env:KEY} tokens")
+
+
 class WorkflowDefinition(BaseModel):
     """Root model for a complete workflow JSON definition."""
 
@@ -144,6 +155,7 @@ class WorkflowDefinition(BaseModel):
     start_url: str
     tabs: List[TabDefinition] = Field(default_factory=list)
     metadata: Optional[Dict[str, Any]] = None
+    parameters: Optional[List[ParameterDefinition]] = None
 
     @field_validator("start_url")
     @classmethod
