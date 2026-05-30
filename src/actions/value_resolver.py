@@ -44,6 +44,27 @@ _sin_state: Dict[str, Any] = {
     "call_count": 0,
 }
 
+# ---------------------------------------------------------------------------
+# Env config state — populated once by configure_env_resolver() from AppConfig
+# ---------------------------------------------------------------------------
+
+_ENV_CONFIG: dict = {}
+
+
+def configure_env_resolver(data: dict) -> None:
+    """Populate the module-level env config dict from the loaded YAML data.
+
+    Must be called once during ``AppConfig.__init__`` after the YAML is loaded.
+    Resolution reads **only** from this dict — shell env vars and .env overrides
+    do not apply (per D-03).
+
+    Args:
+        data: The raw dict returned by ``_load_yaml()``.
+    """
+    global _ENV_CONFIG
+    _ENV_CONFIG = data
+
+
 def _generate_sin_full() -> str:  # 1 usage  new*
     """Generate and store a complete 9-digit SIN, reset state."""
     first = random.randint(a=1, b=8)
@@ -158,6 +179,14 @@ def resolve_dynamic_value(value: str) -> str:
     if not match:
         return value
     key = match.group(1)
+    if key.startswith("env:"):
+        env_key = key[len("env:"):]
+        if env_key not in _ENV_CONFIG:
+            raise ValueError(
+                f"Unknown env config key {env_key!r}. "
+                f"Available keys: {sorted(_ENV_CONFIG)}"
+            )
+        return str(_ENV_CONFIG[env_key])
     if key not in PLACEHOLDER_REGISTRY:
         raise ValueError(
             f"Unknown placeholder '${{{key}}}'. "

@@ -41,22 +41,28 @@ def _luhn_valid(sin: str) -> bool:
 # ---------------------------------------------------------------------------
 
 class TestGenerators:
+    def _full_sin(self) -> str:
+        """Assemble a full 9-digit SIN from 3 consecutive chunk calls."""
+        return generate_sin_number() + generate_sin_number() + generate_sin_number()
+
     def test_sin_length(self):
-        assert len(generate_sin_number()) == 9
+        # generate_sin_number() returns 3-digit chunks; 3 calls = full 9-digit SIN
+        assert len(self._full_sin()) == 9
 
     def test_sin_all_digits(self):
-        assert generate_sin_number().isdigit()
+        assert self._full_sin().isdigit()
 
     def test_sin_first_digit(self):
         for _ in range(50):
-            assert generate_sin_number()[0] in "12345678"
+            full = self._full_sin()
+            assert full[0] in "12345678"
 
     def test_sin_luhn_valid(self):
         for _ in range(20):
-            assert _luhn_valid(generate_sin_number())
+            assert _luhn_valid(self._full_sin())
 
     def test_sin_randomness(self):
-        results = {generate_sin_number() for _ in range(20)}
+        results = {self._full_sin() for _ in range(20)}
         assert len(results) > 1
 
     def test_first_name_nonempty(self):
@@ -83,7 +89,11 @@ class TestPlaceholderRegistry:
             assert callable(fn), f"Registry entry '{key}' is not callable"
 
     def test_resolve_sin_number(self):
-        result = resolve_dynamic_value("${sin_number}")
+        # generate_sin_number() returns 3-digit chunks; 3 calls assemble a full SIN
+        chunk1 = resolve_dynamic_value("${sin_number}")
+        chunk2 = resolve_dynamic_value("${sin_number}")
+        chunk3 = resolve_dynamic_value("${sin_number}")
+        result = chunk1 + chunk2 + chunk3
         assert isinstance(result, str)
         assert len(result) == 9
         assert result.isdigit()
@@ -138,8 +148,12 @@ class TestPlaceholderRegistry:
 
 class TestValueResolverIntegration:
     def test_resolver_expands_sin(self):
+        # generate_sin_number() returns 3-digit chunks; 3 calls assemble a full SIN
         r = ValueResolver()
-        result = r.resolve("${sin_number}")
+        chunk1 = r.resolve("${sin_number}")
+        chunk2 = r.resolve("${sin_number}")
+        chunk3 = r.resolve("${sin_number}")
+        result = chunk1 + chunk2 + chunk3
         assert isinstance(result, str)
         assert len(result) == 9
         assert result.isdigit()
@@ -264,7 +278,11 @@ class TestEnvPlaceholder:
     def test_env_and_registry_placeholders_coexist(self):
         configure_env_resolver({"login_password": "secret99"})
         env_result = resolve_dynamic_value("${env:login_password}")
-        sin_result = resolve_dynamic_value("${sin_number}")
+        # generate_sin_number() returns 3-digit chunks; 3 calls assemble a full SIN
+        sin_chunk1 = resolve_dynamic_value("${sin_number}")
+        sin_chunk2 = resolve_dynamic_value("${sin_number}")
+        sin_chunk3 = resolve_dynamic_value("${sin_number}")
+        sin_result = sin_chunk1 + sin_chunk2 + sin_chunk3
         assert env_result == "secret99"
         assert isinstance(sin_result, str) and len(sin_result) == 9
 

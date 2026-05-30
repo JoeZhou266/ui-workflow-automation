@@ -18,6 +18,7 @@ from src.core.constants import (
     DEFAULT_WINDOW_WIDTH,
     SCREENSHOT_DIR,
 )
+from src.actions.value_resolver import configure_env_resolver
 
 
 class AppConfig:
@@ -30,6 +31,7 @@ class AppConfig:
     ) -> None:
         load_dotenv()
         self._data = self._load_yaml(env, config_dir)
+        configure_env_resolver(self._data)
 
         self.base_url: str = self._resolve("BASE_URL", "base_url", "")
         self.browser: str = self._resolve("BROWSER", "browser", "chrome").lower()
