@@ -30,6 +30,7 @@ Full phase details: `.planning/milestones/v1.0-ROADMAP.md`
 <summary>🚧 v1.1 Observability & Reporting (Phase 12+) — IN PROGRESS</summary>
 
 - [x] Phase 12: Support Video Capture for Failed Tests (3/3 plans) — completed 2026-05-30
+- [ ] Phase 13: Generate HTML Test Report with Results and Details (0/0 plans)
 
 Plans:
 - [x] 12-01-PLAN.md — Core infrastructure: VideoManager, constants, AppConfig field, env YAML configs
@@ -54,3 +55,4 @@ Plans:
 | 10. Support ${env:KEY} config placeholder | v1.0 | 1/1 | Complete | 2026-05-30 |
 | 11. Support Workflow Parameters + Conditional $ref | v1.0 | 2/2 | Complete | 2026-05-29 |
 | 12. Support Video Capture for Failed Tests | v1.1 | 3/3 | Complete   | 2026-05-30 |
+| 13. Generate HTML Test Report | v1.1 | 0/0 | Not planned | — |
