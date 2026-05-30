@@ -4,9 +4,25 @@ import os
 from typing import Optional
 
 import pytest
+from pytest import CollectReport, StashKey
 
 from src.core.config import AppConfig
 from src.core.logger import configure_logging
+
+
+# ---------------------------------------------------------------------------
+# Test outcome stash (populated by hook, read by video_recorder teardown)
+# ---------------------------------------------------------------------------
+
+_phase_report_key: StashKey[dict[str, CollectReport]] = StashKey()
+
+
+@pytest.hookimpl(wrapper=True, tryfirst=True)
+def pytest_runtest_makereport(item, call):
+    """Store each phase report in item.stash so fixtures can read pass/fail outcome."""
+    rep = yield   # new-style wrapper — yield returns the report directly
+    item.stash.setdefault(_phase_report_key, {})[rep.when] = rep
+    return rep
 
 
 # ---------------------------------------------------------------------------
@@ -68,6 +84,46 @@ def driver(app_config: AppConfig):
     manager = DriverManager(app_config)
     web_driver = manager.start()
     yield web_driver
+    manager.stop()
+
+
+@pytest.fixture(scope="function")
+def video_recorder(request, app_config: AppConfig, driver):
+    """Start video recording; retain file only on test failure.
+
+    Opt-in: tests must explicitly request this fixture.
+    On PASS: video file is deleted.
+    On FAIL: video file is retained in reports/videos/.
+    When recording is unavailable (headless, ffmpeg absent, record_video=False):
+    yields None and no-ops silently.
+    """
+    from src.utils.videos import VideoManager
+    from src.core.logger import get_logger
+
+    _log = get_logger("video_recorder")
+    manager = VideoManager()
+    video_path = manager.start(request.node.name, headless=app_config.headless or not app_config.record_video)
+    yield video_path
+
+    # --- teardown: read outcome from stash ---
+    # The pytest_runtest_makereport hook populates this stash BEFORE teardown runs.
+    report = request.node.stash.get(_phase_report_key, {})
+
+    class _Pass:
+        """Sentinel report with no failure — used when stash key is absent."""
+        failed = False
+        skipped = False
+
+    call_report = report.get("call", _Pass())
+    setup_report = report.get("setup", _Pass())
+    test_failed = call_report.failed or setup_report.failed
+
+    if video_path:
+        if test_failed:
+            _log.info("Video retained (test failed): %s", video_path)
+        else:
+            manager.delete(video_path)
+
     manager.stop()
 
 
