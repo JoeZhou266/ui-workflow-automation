@@ -153,7 +153,7 @@ class VideoManager:
                 "-f", "x11grab",
                 "-framerate", "15",
                 "-video_size", "1920x1080",
-                "-i", os.environ.get("DISPLAY", ":0.0"),
+                "-i", display,
                 "-c:v", "libx264",
                 "-preset", "ultrafast",
                 "-crf", "28",
