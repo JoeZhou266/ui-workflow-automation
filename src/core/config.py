@@ -51,6 +51,7 @@ class AppConfig:
             self._resolve("POLL_FREQUENCY_MS", "poll_frequency_ms", DEFAULT_POLL_FREQUENCY_MS)
         )
         self.screenshots_dir: str = self._resolve("SCREENSHOTS_DIR", "screenshots_dir", SCREENSHOT_DIR)
+        self.videos_dir: str = self._resolve("VIDEOS_DIR", "videos_dir", VIDEO_DIR)
         self.record_video: bool = self._resolve_bool("RECORD_VIDEO", "record_video", False)
         self.log_level: str = self._resolve("LOG_LEVEL", "log_level", "INFO").upper()
         self.window_width: int = int(

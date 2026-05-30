@@ -101,7 +101,7 @@ def video_recorder(request, app_config: AppConfig, driver):
     from src.core.logger import get_logger
 
     _log = get_logger("video_recorder")
-    manager = VideoManager()
+    manager = VideoManager(base_dir=app_config.videos_dir)
     video_path = manager.start(request.node.name, headless=app_config.headless or not app_config.record_video)
     yield video_path
 
