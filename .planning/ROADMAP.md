@@ -15,6 +15,7 @@ Data-driven Selenium automation framework that reads workflow definitions from J
 - [x] **Phase 7: Support skip-if-not-visible** - SkipElementSignal exception + ActionFactory visibility probe + WorkflowEngine catch, records step as SKIPPED not FAILED
 - [x] **Phase 8: Support checkbox search by name+value** - transparent enhancement to CHECK/UNCHECK via CSS selector (mirrors select_radio pattern)
 - [x] **Phase 9: Support last-day-of-month placeholder** - `${last_day_of_month}` generator returning MM/DD/YYYY of the last calendar day of the current month
+- [ ] **Phase 10: Support ${env:KEY} config placeholder** - `${env:KEY}` namespace resolving to env YAML config values so account numbers, credentials, and env-specific IDs live in config rather than workflow JSON
 
 ## Phase Details
 
@@ -143,6 +144,16 @@ Plans:
 Plans:
 - [x] 09-01-PLAN.md — TDD: RED tests for generate_last_day_of_month import and TestLastDayOfMonth class; GREEN implementation adds calendar import, generator function, and PLACEHOLDER_REGISTRY entry
 
+### Phase 10: Support ${env:KEY} config placeholder
+**Goal**: Add an `${env:KEY}` placeholder namespace to `PLACEHOLDER_REGISTRY` in `value_resolver.py` so workflow JSON can reference values from the env YAML config (and `.env`) rather than hardcoding them — enabling account numbers, credentials, and environment-specific IDs to live in config files.
+**Depends on**: Phase 4
+**Success Criteria** (what must be TRUE):
+  1. `${env:KEY}` in a workflow JSON `value` field resolves to the matching key from the active env YAML config
+  2. Missing keys raise a clear error at resolution time (not silently pass through)
+  3. Works alongside existing placeholders — `${sin_number}`, `${env:BASE_URL}`, etc. can all appear in the same workflow
+  4. Unit tests cover: successful resolution, missing key error, passthrough of non-placeholder strings
+**Plans**: 0 plans
+
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
@@ -156,3 +167,4 @@ Plans:
 | 7. Support skip-if-not-visible | 1/1 | Complete | 2026-05-26 |
 | 8. Support checkbox search by name+value | 1/1 | Complete | 2026-05-26 |
 | 9. Support last-day-of-month placeholder | 1/1 | Complete | 2026-05-29 |
+| 10. Support ${env:KEY} config placeholder | 0/0 | Planned | — |
