@@ -14,7 +14,7 @@ Data-driven Selenium automation framework that reads workflow definitions from J
 - [x] **Phase 6: Support execute_js_script Action Type** - execute arbitrary JavaScript from workflow JSON via `element.value` field
 - [x] **Phase 7: Support skip-if-not-visible** - SkipElementSignal exception + ActionFactory visibility probe + WorkflowEngine catch, records step as SKIPPED not FAILED
 - [x] **Phase 8: Support checkbox search by name+value** - transparent enhancement to CHECK/UNCHECK via CSS selector (mirrors select_radio pattern)
-- [ ] **Phase 9: Support last-day-of-month placeholder** - `${last_day_of_month}` generator returning MM/DD/YYYY of the last calendar day of the current month
+- [x] **Phase 9: Support last-day-of-month placeholder** - `${last_day_of_month}` generator returning MM/DD/YYYY of the last calendar day of the current month
 
 ## Phase Details
 
@@ -141,7 +141,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 09-01-PLAN.md — TDD: RED tests for generate_last_day_of_month import and TestLastDayOfMonth class; GREEN implementation adds calendar import, generator function, and PLACEHOLDER_REGISTRY entry
+- [x] 09-01-PLAN.md — TDD: RED tests for generate_last_day_of_month import and TestLastDayOfMonth class; GREEN implementation adds calendar import, generator function, and PLACEHOLDER_REGISTRY entry
 
 ## Progress
 
@@ -155,4 +155,4 @@ Plans:
 | 6. Support execute_js_script Action Type | 1/1 | Complete | 2026-05-25 |
 | 7. Support skip-if-not-visible | 1/1 | Complete | 2026-05-26 |
 | 8. Support checkbox search by name+value | 1/1 | Complete | 2026-05-26 |
-| 9. Support last-day-of-month placeholder | 0/1 | In Progress | — |
+| 9. Support last-day-of-month placeholder | 1/1 | Complete | 2026-05-29 |
