@@ -10,6 +10,7 @@ import pytest
 from src.actions.value_resolver import (
     PLACEHOLDER_REGISTRY,
     ValueResolver,
+    configure_env_resolver,
     generate_first_name,
     generate_last_day_of_next_month,
     generate_last_name,
@@ -229,3 +230,47 @@ class TestLastDayOfNextMonth:
 
     def test_passthrough_non_placeholder_unchanged(self):
         assert resolve_dynamic_value("05/31/2026") == "05/31/2026"
+
+
+# ---------------------------------------------------------------------------
+# Phase 10 — SC-1..SC-4: ${env:KEY} placeholder resolution
+# ---------------------------------------------------------------------------
+
+class TestEnvPlaceholder:
+    def test_resolves_known_key(self):
+        configure_env_resolver({"base_url": "http://test.example.com"})
+        assert resolve_dynamic_value("${env:base_url}") == "http://test.example.com"
+
+    def test_resolves_custom_key(self):
+        configure_env_resolver({"account_number": "ACC-001"})
+        assert resolve_dynamic_value("${env:account_number}") == "ACC-001"
+
+    def test_missing_key_raises_value_error(self):
+        configure_env_resolver({"base_url": "http://test.example.com"})
+        with pytest.raises(ValueError, match="Unknown env config key 'MISSING_KEY'"):
+            resolve_dynamic_value("${env:MISSING_KEY}")
+
+    def test_missing_key_error_lists_available_keys(self):
+        configure_env_resolver({"base_url": "http://test.example.com", "account_number": "ACC-001"})
+        with pytest.raises(ValueError) as exc_info:
+            resolve_dynamic_value("${env:nonexistent}")
+        assert "Available keys:" in str(exc_info.value)
+
+    def test_empty_env_config_raises_on_any_key(self):
+        configure_env_resolver({})
+        with pytest.raises(ValueError, match="Unknown env config key"):
+            resolve_dynamic_value("${env:anything}")
+
+    def test_env_and_registry_placeholders_coexist(self):
+        configure_env_resolver({"login_password": "secret99"})
+        env_result = resolve_dynamic_value("${env:login_password}")
+        sin_result = resolve_dynamic_value("${sin_number}")
+        assert env_result == "secret99"
+        assert isinstance(sin_result, str) and len(sin_result) == 9
+
+    def test_passthrough_non_placeholder_unchanged(self):
+        configure_env_resolver({"base_url": "http://test.example.com"})
+        assert resolve_dynamic_value("plain text") == "plain text"
+
+    def test_configure_env_resolver_callable(self):
+        assert callable(configure_env_resolver)
