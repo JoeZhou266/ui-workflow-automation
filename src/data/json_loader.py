@@ -119,9 +119,22 @@ class WorkflowLoader:
         params: dict = {}
         raw_params = data.get("parameters") if isinstance(data, dict) else None
         if raw_params:
-            for p in raw_params:
-                resolved_value = resolve_dynamic_value(p["value"])
-                params[p["name"]] = resolved_value
+            try:
+                for p in raw_params:
+                    if not isinstance(p, dict) or "name" not in p or "value" not in p:
+                        raise WorkflowValidationError(
+                            f"Each entry in 'parameters' must be an object with 'name' and 'value' keys; "
+                            f"got: {p!r}",
+                            path=str_path,
+                        )
+                    resolved_value = resolve_dynamic_value(p["value"])
+                    params[p["name"]] = resolved_value
+            except WorkflowValidationError:
+                raise
+            except (ValueError, KeyError, TypeError) as exc:
+                raise WorkflowValidationError(
+                    f"Error resolving workflow parameters: {exc}", path=str_path
+                ) from exc
 
         try:
             data = resolve_refs(data, file_path.parent, params=params)
