@@ -12,6 +12,7 @@ A data-driven Selenium test automation framework in Python 3.9.13. Workflows are
   - [Quick Start](#quick-start)
 - [Configuration](#configuration)
 - [Writing Workflow JSON](#writing-workflow-json)
+  - [Dynamic placeholder values](#dynamic-placeholder-values)
   - [Disambiguating checkboxes by name and value](#disambiguating-checkboxes-by-name-and-value)
   - [Skipping invisible optional elements](#skipping-invisible-optional-elements)
 - [Supported Element Types and Actions](#supported-element-types-and-actions)
@@ -330,6 +331,58 @@ Use `execute_js_script` to run arbitrary JavaScript in the browser context. The 
 > **Sentinel locator:** Script actions do not interact with any DOM element. The `locator` field is required by the schema — use `{ "by": "id", "value": "_script" }` as a conventional no-op placeholder. The dispatch layer ignores it.
 
 > **`value` is required:** If `value` is absent or `null`, the action raises `ElementActionError`. Always provide the JavaScript string.
+
+---
+
+### Dynamic placeholder values
+
+Any `value` field in an `ElementDefinition` that contains a `${token}` pattern is automatically resolved at action-dispatch time — before the value reaches the browser. Only a **full-value token** is expanded; partial matches like `"prefix_${first_name}"` are passed through unchanged.
+
+#### Built-in placeholders
+
+| Token | Returns | Example output |
+|---|---|---|
+| `${sin_number}` | Random valid Canadian SIN (9 digits, Luhn check). Calls in groups of three return successive 3-digit chunks of the same SIN, then cycle. | `"482013764"` |
+| `${first_name}` | Random first name from a built-in list | `"Olivia"` |
+| `${last_name}` | Random last name from a built-in list | `"Martinez"` |
+| `${random_number}` | Random 7-digit number string | `"3847261"` |
+| `${last_day_of_month}` | Last calendar day of the **current month** as `MM/DD/YYYY`. Correctly handles 28/29/30/31-day months including leap-year February. | `"05/31/2026"` |
+
+#### Usage examples
+
+```json
+{
+  "name": "Date of Service End",
+  "type": "text",
+  "action": "input",
+  "locator": { "by": "id", "value": "end-date" },
+  "value": "${last_day_of_month}"
+}
+```
+
+```json
+{
+  "name": "First Name",
+  "type": "text",
+  "action": "input",
+  "locator": { "by": "name", "value": "firstName" },
+  "value": "${first_name}"
+}
+```
+
+```json
+{
+  "name": "SIN Part 1",
+  "type": "text",
+  "action": "input",
+  "locator": { "by": "id", "value": "sin-field-1" },
+  "value": "${sin_number}"
+}
+```
+
+> **Tip — SIN chunking:** `${sin_number}` is designed for forms that split a 9-digit SIN into three separate 3-digit fields. Three consecutive `${sin_number}` elements in the same workflow automatically receive chunks 1, 2, and 3 of the same generated SIN.
+
+> **Unknown tokens raise at runtime:** If `${token}` does not match a registered key, `resolve_dynamic_value()` raises `ValueError` immediately. Check the token spelling against the built-in table above, or register it (see [Extending the Framework](#extending-the-framework)).
 
 ---
 
@@ -749,14 +802,28 @@ On failure the engine automatically:
 
 ## Extending the Framework
 
-### Add variable substitution to values
+### Add a custom placeholder token
 
-Edit `src/actions/value_resolver.py`:
+Add a zero-argument generator function and register it in `PLACEHOLDER_REGISTRY` inside `src/actions/value_resolver.py`. No other files need to change — `ValueResolver` and `resolve_dynamic_value()` pick up the new token automatically.
 
 ```python
-def _resolve_string(self, value: str) -> str:
+# src/actions/value_resolver.py
+
+def generate_today_iso() -> str:
+    """Return today's date as YYYY-MM-DD."""
     from datetime import date
-    return value.replace("${today}", date.today().isoformat())
+    return date.today().isoformat()
+
+PLACEHOLDER_REGISTRY: Dict[str, Callable[[], str]] = {
+    ...
+    "today_iso": generate_today_iso,   # add here
+}
+```
+
+Usage in workflow JSON:
+
+```json
+{ "value": "${today_iso}" }
 ```
 
 ### Add a custom wait condition
