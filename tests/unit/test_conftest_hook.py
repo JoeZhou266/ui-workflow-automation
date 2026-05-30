@@ -38,10 +38,15 @@ class TestHookPresence:
     def test_hook_has_hookimpl_marker(self):
         """The hook must be decorated with @pytest.hookimpl(wrapper=True, tryfirst=True)."""
         hook = conftest.pytest_runtest_makereport
-        # pytest.hookimpl decorator attaches a pytestmark attribute to the function
-        assert hasattr(hook, "pytestmark") or hasattr(hook, "hookwrapper") or hasattr(hook, "_pytestwrap"), (
-            "pytest_runtest_makereport does not appear to have a @pytest.hookimpl marker"
+        # pytest.hookimpl decorator attaches a 'pytest_impl' attribute to the function
+        # (the attribute name used in pytest 8.x)
+        assert hasattr(hook, "pytest_impl"), (
+            "pytest_runtest_makereport does not appear to have a @pytest.hookimpl marker "
+            f"(checked 'pytest_impl' attribute); attrs={[a for a in dir(hook) if not a.startswith('__')]}"
         )
+        opts = hook.pytest_impl
+        assert opts.get("wrapper") is True, f"wrapper=True not set; opts={opts}"
+        assert opts.get("tryfirst") is True, f"tryfirst=True not set; opts={opts}"
 
     def test_hook_not_hookwrapper(self):
         """Must use wrapper=True (new style), not hookwrapper=True (deprecated)."""

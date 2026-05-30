@@ -4,9 +4,25 @@ import os
 from typing import Optional
 
 import pytest
+from pytest import CollectReport, StashKey
 
 from src.core.config import AppConfig
 from src.core.logger import configure_logging
+
+
+# ---------------------------------------------------------------------------
+# Test outcome stash (populated by hook, read by video_recorder teardown)
+# ---------------------------------------------------------------------------
+
+_phase_report_key: StashKey[dict[str, CollectReport]] = StashKey()
+
+
+@pytest.hookimpl(wrapper=True, tryfirst=True)
+def pytest_runtest_makereport(item, call):
+    """Store each phase report in item.stash so fixtures can read pass/fail outcome."""
+    rep = yield   # new-style wrapper — yield returns the report directly
+    item.stash.setdefault(_phase_report_key, {})[rep.when] = rep
+    return rep
 
 
 # ---------------------------------------------------------------------------
