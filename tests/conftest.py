@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import datetime
 import os
+import warnings
 from pathlib import Path
 from typing import Optional
 
+import coverage as _cov_mod
 import pytest
 from pytest import CollectReport, StashKey
 from pytest_html import extras as html_extras
@@ -103,16 +105,18 @@ def pytest_sessionfinish(session, exitstatus):
     if getattr(config.option, "no_cov", False):
         return
 
-    # D-14: skip gracefully when .coverage binary doesn't exist
-    if not Path(".coverage").exists():
+    # D-14: skip gracefully when .coverage binary doesn't exist.
+    # Resolve data_file via coverage.py config so COVERAGE_FILE env and .coveragerc
+    # [run] data_file are both respected (WR-03).
+    _data_file = _cov_mod.Coverage().config.data_file
+    if not Path(_data_file).exists():
         return
 
     try:
-        html = build_custom_index(coverage_dir=COVERAGE_DIR)
+        html = build_custom_index(coverage_dir=COVERAGE_DIR, data_file=_data_file)
         out = Path(COVERAGE_DIR) / "custom_index.html"
         out.write_text(html, encoding="utf-8")
     except Exception as exc:
-        import warnings
         warnings.warn(f"coverage_index: failed to generate custom_index.html: {exc}")
 
 
