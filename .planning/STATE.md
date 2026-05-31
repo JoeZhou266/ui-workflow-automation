@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Observability & Reporting
-status: complete
-stopped_at: Phase 14 complete — pytest-cov wired, 324 tests pass with coverage, HTML report at reports/coverage/
-last_updated: "2026-05-30T00:00:00Z"
-last_activity: 2026-05-30
+status: in_progress
+stopped_at: Phase 15 added — per-file coverage source drilldown (not planned yet)
+last_updated: "2026-05-31T00:00:00Z"
+last_activity: 2026-05-31
 progress:
-  total_phases: 14
+  total_phases: 15
   completed_phases: 14
   total_plans: 19
   completed_plans: 19
-  percent: 100
+  percent: 93
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-30)
 
 **Core value:** JSON-driven browser automation — zero Python per new workflow
-**Current focus:** v1.1 milestone complete — all 14 phases done
+**Current focus:** v1.1 Phase 15 — Add per-file coverage source drilldown
 
 ## Current Position
 
-Phase: 14 (complete)
-Milestone: v1.1 complete
-Status: All phases complete — pytest-cov wired, HTML coverage report at reports/coverage/
-Last activity: 2026-05-30
+Phase: 15 (not planned)
+Milestone: v1.1 in progress
+Status: Phase 15 added — ready to discuss/plan
+Last activity: 2026-05-31
 
 Progress: [████████████████] 100%
 
@@ -77,6 +77,7 @@ Note: Both items require real browser execution (new window context persistence,
 - Phase 9 added: Support last-day-of-month placeholder — `${last_day_of_month}` generator returning MM/DD/YYYY of last calendar day of current month
 - Phase 13 added: Generate HTML test report with results and details, saved to reports/ folder
 - Phase 14 added: Add Python unit test coverage and report in project
+- Phase 15 added: Add per-file coverage source drilldown — JaCoCo-style line-level view per source file linked from HTML coverage report
 
 ### Phase 6 Decisions
 
