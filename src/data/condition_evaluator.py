@@ -10,9 +10,37 @@ _ATOM_PATTERN = re.compile(
     r"^\$\{([^}]+)\}\s*(==|!=)\s*'([^']*)'\s*$"
 )
 
-# Splits compound conditions on && or || operators (whitespace-tolerant).
-# Using a capturing group preserves operator tokens at odd indices of the result list.
-_SPLIT_PATTERN = re.compile(r'\s*(&&|\|\|)\s*')
+def _split_tokens(condition: str) -> list[str]:
+    """Split condition on && / || operators outside single-quoted strings.
+
+    Returns a flat list where even indices are atom strings and odd indices are
+    operator tokens (``&&`` or ``||``), mirroring the output of a capturing-group
+    ``re.split`` call but respecting single-quote context so that operator literals
+    inside a quoted RHS value (e.g. ``${a} == '&&'``) are not treated as operators.
+    """
+    tokens: list[str] = []
+    current: list[str] = []
+    i = 0
+    in_quote = False
+    while i < len(condition):
+        if condition[i] == "'" and not in_quote:
+            in_quote = True
+            current.append(condition[i])
+            i += 1
+        elif condition[i] == "'" and in_quote:
+            in_quote = False
+            current.append(condition[i])
+            i += 1
+        elif not in_quote and condition[i:i+2] in ("&&", "||"):
+            tokens.append("".join(current).strip())
+            tokens.append(condition[i:i+2])
+            current = []
+            i += 2
+        else:
+            current.append(condition[i])
+            i += 1
+    tokens.append("".join(current).strip())
+    return tokens
 
 
 def evaluate_condition(condition: str, params: dict, path: str = "") -> bool:
@@ -37,7 +65,7 @@ def evaluate_condition(condition: str, params: dict, path: str = "") -> bool:
         WorkflowValidationError: If any atom in the condition string does not match the
             expected format (malformed condition is also an authoring error).
     """
-    tokens = _SPLIT_PATTERN.split(condition.strip())
+    tokens = _split_tokens(condition.strip())
     atoms = tokens[0::2]   # even-index tokens: the condition atoms
     ops   = tokens[1::2]   # odd-index tokens:  && or ||
 
