@@ -4,6 +4,7 @@
 
 - ✅ **v1.0 Foundation Framework** — Phases 1–11 (shipped 2026-05-30)
 - ✅ **v1.1 Observability & Reporting** — Phases 12–15 (shipped 2026-05-31)
+- 🚧 **v1.2 Advanced Conditional Logic** — Phases 16+ (in progress)
 
 ## Phases
 
@@ -46,6 +47,16 @@ Plans:
 
 </details>
 
+<details open>
+<summary>🚧 v1.2 Advanced Conditional Logic (Phases 16+) — IN PROGRESS</summary>
+
+- [ ] Phase 16: Support logical operators (&& / ||) in conditional $ref (1/1 plan) — Goal: Enable compound conditions like `"${account_type} == 'open' && ${kyc_required} != 'true'"` in workflow parameter $ref resolution
+
+Plans:
+- [ ] 16-01-PLAN.md — TDD: add compound condition tests (RED) then implement two-pass token-split evaluator (GREEN); 9 new tests (OP-01..10)
+
+</details>
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -65,3 +76,4 @@ Plans:
 | 13. Generate HTML Test Report | v1.1 | 2/2 | Complete | 2026-05-31 |
 | 14. Add Python unit test coverage and report in project | v1.1 | 1/1 | Complete | 2026-05-30 |
 | 15. Add per-file coverage source drilldown | v1.1 | 2/2 | Complete | 2026-05-31 |
+| 16. Support logical operators (&& / \|\|) in conditional $ref | v1.2 | 0/1 | Planned | — |
