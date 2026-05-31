@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Observability & Reporting
-status: in_progress
-stopped_at: Phase 15 executed — 2/2 plans complete, proceeding to verification
-last_updated: "2026-05-31T00:48:00Z"
+status: complete
+stopped_at: Phase 15 complete — v1.1 milestone shipped
+last_updated: "2026-05-31T00:55:00Z"
 last_activity: 2026-05-31
 progress:
   total_phases: 15
-  completed_phases: 14
+  completed_phases: 15
   total_plans: 21
   completed_plans: 21
   percent: 100
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-30)
 
 **Core value:** JSON-driven browser automation — zero Python per new workflow
-**Current focus:** v1.1 Phase 15 — Add per-file coverage source drilldown
+**Current focus:** v1.1 complete — all 15 phases shipped
 
 ## Current Position
 
-Phase: 15 (executed — verifying)
-Milestone: v1.1 in progress
-Status: Phase 15 plans complete — running code review and verification
+Phase: 15 (complete)
+Milestone: v1.1 complete — shipped 2026-05-31
+Status: All phases complete — 363 tests passing, 0 regressions
 Last activity: 2026-05-31
 
 Progress: [████████████████] 100%

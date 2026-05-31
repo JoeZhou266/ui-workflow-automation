@@ -3,7 +3,7 @@
 ## Milestones
 
 - ✅ **v1.0 Foundation Framework** — Phases 1–11 (shipped 2026-05-30)
-- 🚧 **v1.1 Observability & Reporting** — Phases 12+ (in progress)
+- ✅ **v1.1 Observability & Reporting** — Phases 12–15 (shipped 2026-05-31)
 
 ## Phases
 
@@ -27,7 +27,7 @@ Full phase details: `.planning/milestones/v1.0-ROADMAP.md`
 </details>
 
 <details open>
-<summary>🚧 v1.1 Observability & Reporting (Phases 12–15) — IN PROGRESS</summary>
+<summary>✅ v1.1 Observability & Reporting (Phases 12–15) — SHIPPED 2026-05-31</summary>
 
 - [x] Phase 12: Support Video Capture for Failed Tests (3/3 plans) — completed 2026-05-30
 - [x] Phase 13: Generate HTML Test Report with Results and Details (2/2 plans) — completed 2026-05-31
