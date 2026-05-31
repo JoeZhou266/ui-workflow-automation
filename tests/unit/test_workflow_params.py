@@ -74,6 +74,54 @@ class TestEvaluateCondition:
         with pytest.raises(WorkflowValidationError, match="Malformed"):
             evaluate_condition("bad condition", {})
 
+    # OP-01
+    def test_and_both_true(self):
+        assert evaluate_condition(
+            "${a} == 'x' && ${b} == 'y'", {"a": "x", "b": "y"}
+        ) is True
+
+    # OP-02
+    def test_and_one_false(self):
+        assert evaluate_condition(
+            "${a} == 'x' && ${b} == 'y'", {"a": "x", "b": "z"}
+        ) is False
+
+    # OP-03
+    def test_or_both_false(self):
+        assert evaluate_condition(
+            "${a} == 'x' || ${b} == 'y'", {"a": "z", "b": "w"}
+        ) is False
+
+    # OP-04
+    def test_or_one_true(self):
+        assert evaluate_condition(
+            "${a} == 'x' || ${b} == 'y'", {"a": "x", "b": "w"}
+        ) is True
+
+    # OP-05
+    def test_mixed_precedence(self):
+        # A && B || C  =>  (A and B) or C  =>  (True and False) or True  => True
+        assert evaluate_condition(
+            "${a} == 'x' && ${b} == 'y' || ${c} == 'z'",
+            {"a": "x", "b": "NO", "c": "z"},
+        ) is True
+
+    # OP-06
+    def test_undefined_param_in_compound_raises(self):
+        with pytest.raises(WorkflowValidationError, match="missing"):
+            evaluate_condition("${a} == 'x' && ${missing} == 'y'", {"a": "x"})
+
+    # OP-07
+    def test_malformed_second_atom_raises(self):
+        with pytest.raises(WorkflowValidationError, match="Malformed"):
+            evaluate_condition("${a} == 'x' && bad_atom", {"a": "x"})
+
+    # OP-09
+    def test_whitespace_tolerant(self):
+        assert evaluate_condition(
+            "${a} == 'x'  &&  ${b} == 'y'", {"a": "x", "b": "y"}
+        ) is True
+
 
 class TestConditionalRef:
     """SC-02/SC-03/SC-04/SC-05/SC-06: Integration tests via WorkflowLoader.load()."""
@@ -173,3 +221,27 @@ class TestConditionalRef:
             assert wf.tabs[0].name == "Summary"
         finally:
             configure_env_resolver({})  # Reset env resolver state after test
+
+    # OP-10
+    def test_compound_condition_includes_tab(self, tmp_path):
+        """OP-10: Compound && condition — tab included only when all atoms true."""
+        self._make_tab_file(tmp_path, "Summary")
+        workflow = {
+            "workflow_name": "Onboarding",
+            "start_url": "https://example.com",
+            "parameters": [
+                {"name": "account_type", "value": "OPEN"},
+                {"name": "kyc_required", "value": "false"},
+            ],
+            "tabs": [
+                {
+                    "$ref": "tabs/Summary.json",
+                    "condition": "${account_type} == 'OPEN' && ${kyc_required} == 'false'",
+                }
+            ],
+        }
+        wf_path = tmp_path / "workflow.json"
+        self._write_json(wf_path, workflow)
+        wf = WorkflowLoader.load(wf_path)
+        assert len(wf.tabs) == 1
+        assert wf.tabs[0].name == "Summary"
