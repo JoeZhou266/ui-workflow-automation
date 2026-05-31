@@ -17,6 +17,7 @@ reports/screenshots/
 reports/videos/
 reports/*.html
 reports/*.xml
+reports/assets/
 allure-results/
 allure-report/
 
