@@ -10,14 +10,16 @@ A data-driven Selenium browser automation framework for Python 3.9.13. Workflow 
 
 ## Current State
 
-Shipped **v1.0 Foundation Framework** on 2026-05-30. **v1.1 Phase 12 complete** on 2026-05-30.
+**v1.1 Observability & Reporting milestone complete** on 2026-05-30. All 14 phases done.
 
-- 12 phases complete, 284 unit tests passing
+- 14 phases complete, 324 unit tests passing
 - Full element type coverage: checkbox, radio, select, number, email, JS execution
 - Dynamic placeholder system: SIN, names, last-day-of-month, env config values
 - Workflow composition: `$ref` file references + parameters + conditional `$ref` for branch workflows
 - Execution control: wait_seconds, skip_if_not_visible, execute_js_script
 - Video capture: ffmpeg-based screen recording in smoke tests (delete on pass, retain on fail)
+- HTML test report: per-test results with step tables and screenshot links saved to `reports/`
+- Coverage reporting: pytest-cov wired via `pytest.ini` addopts — terminal table + HTML at `reports/coverage/`
 
 Tech stack: Python 3.9.13, Selenium, Pydantic v2, pytest, PyYAML, python-dotenv.
 
@@ -40,12 +42,13 @@ Tech stack: Python 3.9.13, Selenium, Pydantic v2, pytest, PyYAML, python-dotenv.
 ### Validated (v1.1)
 
 - ✓ Video capture via ffmpeg for smoke test sessions (`record_video` flag, `VideoManager`, `video_recorder` pytest fixture) — v1.1 Phase 12
+- ✓ HTML test report with per-test step tables and screenshot links saved to `reports/` — v1.1 Phase 13
+- ✓ pytest-cov coverage: terminal table + `reports/coverage/` HTML report on every `pytest` run — v1.1 Phase 14
 
-### Active (v1.1 candidates)
+### Active (v2.0 candidates)
 
 - [ ] Smoke tests with real browser (Phase 3 deferred UAT: window context, window vs tab type hint)
 - [ ] Parallel element execution within a section
-- [ ] Result export (JSON/HTML report)
 - [ ] Retry logic configuration per-element in workflow JSON
 
 ### Out of Scope
@@ -75,4 +78,4 @@ Tech stack: Python 3.9.13, Selenium, Pydantic v2, pytest, PyYAML, python-dotenv.
 - Environment config (base URLs, credentials) in `configs/env.*.yaml` — never hardcoded
 
 ---
-*Last updated: 2026-05-30 after v1.0 milestone*
+*Last updated: 2026-05-30 after v1.1 milestone*
