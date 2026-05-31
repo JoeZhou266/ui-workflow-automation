@@ -4,17 +4,23 @@ import re
 
 from src.core.exceptions import WorkflowValidationError
 
-# Matches: ${param_name} == 'value'  OR  ${param_name} != 'value'
+# Matches a single atomic condition: ${param_name} == 'value'  OR  ${param_name} != 'value'
 # Groups:  (1) param_name,  (2) operator (== or !=),  (3) rhs_value
-_CONDITION_PATTERN = re.compile(
+_ATOM_PATTERN = re.compile(
     r"^\$\{([^}]+)\}\s*(==|!=)\s*'([^']*)'\s*$"
 )
+
+# Splits compound conditions on && or || operators (whitespace-tolerant).
+# Using a capturing group preserves operator tokens at odd indices of the result list.
+_SPLIT_PATTERN = re.compile(r'\s*(&&|\|\|)\s*')
 
 
 def evaluate_condition(condition: str, params: dict, path: str = "") -> bool:
     """Evaluate a simple ``==`` or ``!=`` condition string against *params*.
 
     Condition format: ``${param_name} == 'value'`` or ``${param_name} != 'value'``.
+    Compound conditions using ``&&`` and ``||`` are also supported (Phase 16).
+    Operator precedence: ``&&`` binds tighter than ``||``.
     String comparison only — no type coercion (per D-06).
 
     Args:
@@ -28,13 +34,48 @@ def evaluate_condition(condition: str, params: dict, path: str = "") -> bool:
     Raises:
         WorkflowValidationError: If the condition references an undefined parameter name
             (per D-03 — fail fast).
-        WorkflowValidationError: If the condition string does not match the expected
-            format (malformed condition is also an authoring error).
+        WorkflowValidationError: If any atom in the condition string does not match the
+            expected format (malformed condition is also an authoring error).
     """
-    m = _CONDITION_PATTERN.match(condition.strip())
+    tokens = _SPLIT_PATTERN.split(condition.strip())
+    atoms = tokens[0::2]   # even-index tokens: the condition atoms
+    ops   = tokens[1::2]   # odd-index tokens:  && or ||
+
+    # Evaluate ALL atoms first — fail-fast: catches undefined params anywhere in the expression.
+    # Do NOT short-circuit: an undefined param in a later atom must always raise.
+    values = [_evaluate_atom(a, params, path) for a in atoms]
+
+    # Two-pass reduction: && binds tighter than ||
+    # Pass 1 — fold each && into the preceding clause value
+    clause_values = [values[0]]
+    for i, op in enumerate(ops):
+        if op == '&&':
+            clause_values[-1] = clause_values[-1] and values[i + 1]
+        else:  # '||'
+            clause_values.append(values[i + 1])
+
+    # Pass 2 — OR all clauses
+    return any(clause_values)
+
+
+def _evaluate_atom(atom: str, params: dict, path: str = "") -> bool:
+    """Evaluate a single atomic condition; raises WorkflowValidationError on error.
+
+    Args:
+        atom: A single stripped atom string, e.g. "${param_name} == 'value'".
+        params: Dict mapping parameter names to resolved string values.
+        path: Workflow file path for error context.
+
+    Returns:
+        True if the atom evaluates to true; False otherwise.
+
+    Raises:
+        WorkflowValidationError: If atom does not match _ATOM_PATTERN or param is undefined.
+    """
+    m = _ATOM_PATTERN.match(atom.strip())
     if not m:
         raise WorkflowValidationError(
-            f"Malformed condition string: {condition!r}. "
+            f"Malformed condition atom: {atom!r}. "
             "Expected format: \"${param_name} == 'value'\" or \"${param_name} != 'value'\"",
             path=path,
         )
@@ -46,7 +87,4 @@ def evaluate_condition(condition: str, params: dict, path: str = "") -> bool:
             path=path,
         )
     lhs_value = params[param_name]
-    if operator == "==":
-        return lhs_value == rhs_value
-    else:  # operator == "!="
-        return lhs_value != rhs_value
+    return lhs_value == rhs_value if operator == "==" else lhs_value != rhs_value
