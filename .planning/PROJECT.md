@@ -10,12 +10,13 @@ A data-driven Selenium browser automation framework for Python 3.9.13. Workflow 
 
 ## Current State
 
-**v1.1 Observability & Reporting milestone complete** on 2026-05-31. All 15 phases done.
+**v1.2 Advanced Conditional Logic milestone complete** on 2026-05-31. All 16 phases done.
 
-- 15 phases complete, 363 unit tests passing
+- 16 phases complete, 372 unit tests passing
 - Full element type coverage: checkbox, radio, select, number, email, JS execution
 - Dynamic placeholder system: SIN, names, last-day-of-month, env config values
 - Workflow composition: `$ref` file references + parameters + conditional `$ref` for branch workflows
+- Compound conditions: `&&` and `||` operators in conditional `$ref` with `&&`-before-`||` precedence (Phase 16)
 - Execution control: wait_seconds, skip_if_not_visible, execute_js_script
 - Video capture: ffmpeg-based screen recording in smoke tests (delete on pass, retain on fail)
 - HTML test report: per-test results with step tables and screenshot links saved to `reports/`
@@ -45,6 +46,10 @@ Tech stack: Python 3.9.13, Selenium, Pydantic v2, pytest, PyYAML, python-dotenv.
 - ✓ HTML test report with per-test step tables and screenshot links saved to `reports/` — v1.1 Phase 13
 - ✓ pytest-cov coverage: terminal table + `reports/coverage/` HTML report on every `pytest` run — v1.1 Phase 14
 - ✓ Per-file coverage drilldown: `build_custom_index()` generates `reports/coverage/custom_index.html` with branch columns (Branch/BrPart), package grouping, and per-file links — v1.1 Phase 15
+
+### Validated (v1.2)
+
+- ✓ Compound `&&` / `||` conditions in conditional `$ref` — two-pass token-split evaluator with `&&`-before-`||` precedence; all atoms evaluated before combining (fail-fast) — v1.2 Phase 16
 
 ### Active (v2.0 candidates)
 
