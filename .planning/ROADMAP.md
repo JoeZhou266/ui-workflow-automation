@@ -31,7 +31,7 @@ Full phase details: `.planning/milestones/v1.0-ROADMAP.md`
 
 - [x] Phase 12: Support Video Capture for Failed Tests (3/3 plans) — completed 2026-05-30
 - [x] Phase 13: Generate HTML Test Report with Results and Details (2/2 plans) — completed 2026-05-31
-- [ ] Phase 14: Add Python unit test coverage and report in project (0/0 plans)
+- [ ] Phase 14: Add Python unit test coverage and report in project (1 plan)
 
 Plans:
 - [x] 12-01-PLAN.md — Core infrastructure: VideoManager, constants, AppConfig field, env YAML configs
@@ -39,6 +39,7 @@ Plans:
 - [x] 12-03-PLAN.md — Tests + .gitignore: unit tests for VideoManager, .gitignore update
 - [x] 13-01-PLAN.md — HTML report utility: constants, html_report.py pure functions, unit tests HTML-01..09
 - [x] 13-02-PLAN.md — Pytest integration: pytest_configure hook, StashKeys, workflow_report_extras, conftest unit tests HTML-10..12
+- [ ] 14-01-PLAN.md — Coverage config: pytest-cov dependency, pytest.ini addopts, .coveragerc, .gitignore
 
 </details>
 
@@ -59,4 +60,4 @@ Plans:
 | 11. Support Workflow Parameters + Conditional $ref | v1.0 | 2/2 | Complete | 2026-05-29 |
 | 12. Support Video Capture for Failed Tests | v1.1 | 3/3 | Complete   | 2026-05-30 |
 | 13. Generate HTML Test Report | v1.1 | 2/2 | Complete | 2026-05-31 |
-| 14. Add Python unit test coverage and report in project | v1.1 | 0/0 | Not planned | — |
+| 14. Add Python unit test coverage and report in project | v1.1 | 0/1 | In progress | — |
