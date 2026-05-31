@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Observability & Reporting
 status: in_progress
-stopped_at: Phase 15 added — per-file coverage source drilldown (not planned yet)
+stopped_at: Phase 15 context gathered — ready to plan
 last_updated: "2026-05-31T00:00:00Z"
 last_activity: 2026-05-31
 progress:
