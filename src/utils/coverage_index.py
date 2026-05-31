@@ -44,8 +44,9 @@ def build_custom_index(
     data = cov.get_data()
 
     # CSS discovery — dynamically find style_cb_*.css (hash changes per coverage version)
-    css_files = glob.glob(os.path.join(coverage_dir, "style_cb_*.css"))
-    css_href = os.path.basename(css_files[0]) if css_files else ""
+    # sorted() ensures deterministic selection across OS filesystems (Linux ext4 is unordered)
+    css_files = sorted(glob.glob(os.path.join(coverage_dir, "style_cb_*.css")))
+    css_href = os.path.basename(css_files[-1]) if css_files else ""
 
     # Build package groups by src/ subpackage (parts[0]="src", parts[1]=pkg)
     packages: dict[str, list[dict]] = defaultdict(list)
@@ -72,7 +73,8 @@ def build_custom_index(
         total_stmts += nums.n_statements
         total_miss += nums.n_missing
 
-    overall_pct = round((1 - total_miss / total_stmts) * 100) if total_stmts else 0
+    raw_pct = round((1 - total_miss / total_stmts) * 100) if total_stmts else 0
+    overall_pct = max(0, min(100, raw_pct))
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     return _render_html(packages, css_href, timestamp, overall_pct)
@@ -121,7 +123,8 @@ def _render_html(
 def _render_package(pkg: str, files: list) -> str:
     pkg_stmts = sum(f["stmts"] for f in files)
     pkg_miss = sum(f["miss"] for f in files)
-    pkg_pct = round((1 - pkg_miss / pkg_stmts) * 100) if pkg_stmts else 0
+    raw_pkg_pct = round((1 - pkg_miss / pkg_stmts) * 100) if pkg_stmts else 0
+    pkg_pct = max(0, min(100, raw_pkg_pct))
     rows = "".join(_render_row(f) for f in files)
     return (
         "<details open>"
