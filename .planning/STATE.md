@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Observability & Reporting
-status: in_progress
-stopped_at: Phase 14 planned — 1 plan (14-01) in 1 wave, ready to execute
-last_updated: "2026-05-31T08:00:00Z"
-last_activity: 2026-05-31
+status: complete
+stopped_at: Phase 14 complete — pytest-cov wired, 324 tests pass with coverage, HTML report at reports/coverage/
+last_updated: "2026-05-30T00:00:00Z"
+last_activity: 2026-05-30
 progress:
   total_phases: 14
-  completed_phases: 13
+  completed_phases: 14
   total_plans: 19
-  completed_plans: 18
-  percent: 93
+  completed_plans: 19
+  percent: 100
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-30)
 
 **Core value:** JSON-driven browser automation — zero Python per new workflow
-**Current focus:** v1.1 Phase 14 — Add Python unit test coverage and report in project
+**Current focus:** v1.1 milestone complete — all 14 phases done
 
 ## Current Position
 
-Phase: 14 (planned — ready to execute)
-Milestone: v1.1 in progress
-Status: Phase 14 planned — 1 plan ready, execute when ready
-Last activity: 2026-05-31
+Phase: 14 (complete)
+Milestone: v1.1 complete
+Status: All phases complete — pytest-cov wired, HTML coverage report at reports/coverage/
+Last activity: 2026-05-30
 
 Progress: [████████████████] 100%
 
