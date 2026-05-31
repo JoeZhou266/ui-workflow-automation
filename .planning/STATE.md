@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: Observability & Reporting
-status: complete
-stopped_at: Phase 15 complete — v1.1 milestone shipped
-last_updated: "2026-05-31T00:55:00Z"
+milestone: v1.2
+milestone_name: Advanced Conditional Logic
+status: in_progress
+stopped_at: Phase 16 execution complete — verification pending
+last_updated: "2026-05-31T19:30:00Z"
 last_activity: 2026-05-31
 progress:
-  total_phases: 15
-  completed_phases: 15
-  total_plans: 21
-  completed_plans: 21
+  total_phases: 16
+  completed_phases: 16
+  total_plans: 22
+  completed_plans: 22
   percent: 100
 ---
 
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-30)
 
 **Core value:** JSON-driven browser automation — zero Python per new workflow
-**Current focus:** v1.1 complete — all 15 phases shipped
+**Current focus:** v1.2 in progress — Phase 16 execution complete, verification pending
 
 ## Current Position
 
-Phase: 15 (complete)
-Milestone: v1.1 complete — shipped 2026-05-31
-Status: All phases complete — 363 tests passing, 0 regressions
+Phase: 16 (execution complete — 1/1 plans done)
+Milestone: v1.2 in progress
+Status: Phase 16 executed — verification pending
 Last activity: 2026-05-31
 
 Progress: [████████████████] 100%
@@ -78,6 +78,7 @@ Note: Both items require real browser execution (new window context persistence,
 - Phase 13 added: Generate HTML test report with results and details, saved to reports/ folder
 - Phase 14 added: Add Python unit test coverage and report in project
 - Phase 15 added: Add per-file coverage source drilldown — JaCoCo-style line-level view per source file linked from HTML coverage report
+- Phase 16 added: Support logical operators (&& / ||) in conditional $ref — compound conditions like `"${account_type == 'open'} && ${kyc_required != 'true'}"` in workflow parameter $ref resolution
 
 ### Phase 6 Decisions
 
