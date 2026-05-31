@@ -48,7 +48,7 @@ Plans:
 </details>
 
 <details open>
-<summary>✅ v1.2 Advanced Conditional Logic (Phases 16+) — IN PROGRESS</summary>
+<summary>✅ v1.2 Advanced Conditional Logic (Phases 16+) — SHIPPED 2026-05-31</summary>
 
 - [x] Phase 16: Support logical operators (&& / ||) in conditional $ref (1/1 plan) — completed 2026-05-31
 
