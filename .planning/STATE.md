@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Observability & Reporting
-status: complete
-stopped_at: Phase 13 plan 02 complete — pytest integration (pytest_configure, StashKeys, workflow_report_extras, teardown extras); all 13 phases done
+status: in_progress
+stopped_at: Phase 14 context gathered — coverage scope and report format decisions captured
 last_updated: "2026-05-31T03:07:27Z"
 last_activity: 2026-05-31
 progress:
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-30)
 
 **Core value:** JSON-driven browser automation — zero Python per new workflow
-**Current focus:** v1.1 complete — all phases done
+**Current focus:** v1.1 Phase 14 — Add Python unit test coverage and report in project
 
 ## Current Position
 
-Phase: 13 (complete — 2/2 plans done)
-Milestone: v1.1 complete
-Status: Phase 13 plan 02 complete — conftest.py extended with pytest_configure hook, StashKeys, workflow_report_extras fixture, and 15 unit tests (HTML-10..12); 324 unit tests passing
-Last activity: 2026-05-31
+Phase: 14 (context gathered — not yet planned)
+Milestone: v1.1 in progress
+Status: Phase 14 context captured — ready for planning
+Last activity: 2026-05-30
 
 Progress: [████████████████] 100%
 
@@ -76,6 +76,7 @@ Note: Both items require real browser execution (new window context persistence,
 - Phase 8 added: Support checkbox search by name+value — transparent enhancement to CHECK/UNCHECK via CSS selector (mirrors select_radio pattern)
 - Phase 9 added: Support last-day-of-month placeholder — `${last_day_of_month}` generator returning MM/DD/YYYY of last calendar day of current month
 - Phase 13 added: Generate HTML test report with results and details, saved to reports/ folder
+- Phase 14 added: Add Python unit test coverage and report in project
 
 ### Phase 6 Decisions
 
