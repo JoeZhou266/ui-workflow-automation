@@ -23,6 +23,9 @@ VIDEO_DATE_FORMAT: str = "%Y%m%d_%H%M%S"
 HTML_REPORT_DIR: str = "reports"
 HTML_REPORT_DATE_FORMAT: str = "%Y%m%d_%H%M%S"
 
+# Coverage
+COVERAGE_DIR: str = "reports/coverage"
+
 # Retry
 DEFAULT_STALE_RETRY_COUNT: int = 3
 
