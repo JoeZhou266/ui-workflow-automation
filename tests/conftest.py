@@ -10,7 +10,8 @@ from pytest import CollectReport, StashKey
 from pytest_html import extras as html_extras
 
 from src.core.config import AppConfig
-from src.core.constants import HTML_REPORT_DATE_FORMAT, HTML_REPORT_DIR
+from src.core.constants import COVERAGE_DIR, HTML_REPORT_DATE_FORMAT, HTML_REPORT_DIR
+from src.utils.coverage_index import build_custom_index
 from src.core.logger import configure_logging
 from src.models.element_models import ExecutionSummary
 from src.utils.files import ensure_dir, safe_filename
@@ -66,7 +67,8 @@ def pytest_runtest_makereport(item, call):
     if rep.when == "teardown":
         summary = item.stash.get(_execution_summary_key, None)
         video_path = item.stash.get(_video_path_key, None)
-        if summary is not None or video_path is not None:
+        coverage_index = Path(HTML_REPORT_DIR) / "coverage" / "index.html"
+        if summary is not None or video_path is not None or coverage_index.exists():
             html_parts = []
             if summary is not None:
                 html_parts.append(build_step_table(summary))
@@ -75,11 +77,43 @@ def pytest_runtest_makereport(item, call):
                 html_parts.append(
                     f'<p><a href="videos/{rel}" target="_blank">&#9654; Video</a></p>'
                 )
+            # D-08, D-09, D-10: coverage link — only when reports/coverage/index.html exists
+            if coverage_index.exists():
+                html_parts.append(
+                    '<p><a href="coverage/index.html" target="_blank">Coverage Report</a></p>'
+                )
             html_str = "".join(html_parts)
             existing = list(getattr(rep, "extras", []) or [])
             rep.extras = existing + [html_extras.html(html_str)]
 
     return rep
+
+
+def pytest_sessionfinish(session, exitstatus):
+    """Generate reports/coverage/custom_index.html after coverage HTML is written (D-13).
+
+    Hook ordering: pytest-cov writes coverage HTML inside pytest_runtestloop
+    (before pytest_sessionfinish fires), so reports/coverage/ and .coverage
+    are both available here.
+
+    Fail-open: any exception warns and skips generation; never fails the session.
+    """
+    config = session.config
+    # D-11: respect --no-cov (pytest-cov stores this as config.option.no_cov)
+    if getattr(config.option, "no_cov", False):
+        return
+
+    # D-14: skip gracefully when .coverage binary doesn't exist
+    if not Path(".coverage").exists():
+        return
+
+    try:
+        html = build_custom_index(coverage_dir=COVERAGE_DIR)
+        out = Path(COVERAGE_DIR) / "custom_index.html"
+        out.write_text(html, encoding="utf-8")
+    except Exception as exc:
+        import warnings
+        warnings.warn(f"coverage_index: failed to generate custom_index.html: {exc}")
 
 
 # ---------------------------------------------------------------------------
