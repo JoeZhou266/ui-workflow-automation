@@ -6,7 +6,8 @@ A data-driven Selenium browser automation framework for Python 3.9. Define brows
 ![Selenium](https://img.shields.io/badge/selenium-%E2%89%A54.15-brightgreen)
 ![Pydantic](https://img.shields.io/badge/pydantic-v2-orange)
 ![pytest](https://img.shields.io/badge/pytest-%E2%89%A57.4-blueviolet)
-![Tests](https://img.shields.io/badge/unit_tests-324_passing-success)
+![Tests](https://img.shields.io/badge/unit_tests-363_passing-success)
+![Coverage](https://img.shields.io/badge/coverage-reports%2Fcoverage%2F-informational)
 
 ---
 
@@ -37,6 +38,7 @@ A data-driven Selenium browser automation framework for Python 3.9. Define brows
 - [Programmatic API](#programmatic-api)
 - [Execution Result Model](#execution-result-model)
 - [Test Video Capture](#test-video-capture)
+- [Test Coverage Reports](#test-coverage-reports)
 - [Project Structure](#project-structure)
 - [Extending the Framework](#extending-the-framework)
 
@@ -61,6 +63,7 @@ A data-driven Selenium browser automation framework for Python 3.9. Define brows
 - **Test video capture** — optionally record the browser session as an `.mp4` video via ffmpeg; video is retained on test failure and discarded on pass to keep `reports/videos/` lean
 - **Structured results** — every step returns a typed `StepResult` with status, duration, failure phase, and screenshot path
 - **HTML test report** — every `pytest` run auto-generates a timestamped HTML report in `reports/` with per-test workflow step drill-downs (collapsible table, color-coded pass/fail/skip rows) and video links for failed tests
+- **Test coverage reports** — pytest-cov runs automatically on every `pytest` invocation, producing a standard HTML report at `reports/coverage/index.html` and a per-package branch drilldown at `reports/coverage/custom_index.html` (Branch / BrPart columns, per-file links)
 
 ---
 
@@ -1068,6 +1071,19 @@ pytest -m smoke -v
 
 # HTML report is auto-generated on every run — open reports/run_report_<timestamp>.html
 pytest tests/unit/ -v
+
+# Run with coverage (default — pytest.ini wires --cov automatically)
+pytest tests/unit/ -v
+# Opens: reports/coverage/index.html        — standard per-file coverage
+#        reports/coverage/custom_index.html — branch drilldown grouped by package
+
+# Run without coverage (faster — skips .coverage data collection)
+pytest tests/unit/ -v --no-cov
+
+# View the coverage reports
+open reports/coverage/index.html          # macOS — standard coverage report
+open reports/coverage/custom_index.html   # macOS — per-file branch drilldown
+# Windows: start reports\coverage\index.html
 ```
 
 ---
@@ -1222,6 +1238,61 @@ Retained videos are written to `reports/videos/` with the naming pattern `YYYYMM
 
 ---
 
+## Test Coverage Reports
+
+Coverage is collected automatically on every `pytest` run via `pytest.ini`. No extra flags are needed.
+
+### What gets generated
+
+| File | Description |
+|------|-------------|
+| `reports/coverage/index.html` | Standard coverage.py per-file HTML report — statement and branch counts, highlighted source |
+| `reports/coverage/custom_index.html` | Custom per-package drilldown — branch columns (Branch / BrPart), package grouping, direct links to per-file pages |
+| `reports/coverage/src_*.html` | Per-file annotated source — red lines (missed), yellow lines (partial branch) |
+
+Both HTML files are generated after every successful test run. The `custom_index.html` is written by a `pytest_sessionfinish` hook (`tests/conftest.py`) that reads the `.coverage` binary produced by pytest-cov.
+
+### Skipping coverage
+
+Pass `--no-cov` to skip data collection entirely — useful when iterating quickly on a single file:
+
+```bash
+pytest tests/unit/test_coverage_index.py -v --no-cov
+```
+
+The `pytest_sessionfinish` hook automatically detects `--no-cov` and skips writing `custom_index.html`.
+
+### Branch coverage
+
+`.coveragerc` enables branch coverage tracking:
+
+```ini
+[run]
+source = src
+branch = true
+```
+
+The `Branch` and `BrPart` columns in `custom_index.html` show which decision points were fully exercised:
+
+- **Branch** — total number of branch points in the file
+- **BrPart** — branches taken in only one direction (partial coverage, highlighted yellow in per-file view)
+
+### Report structure
+
+```
+reports/
+├── coverage/
+│   ├── index.html             # Standard coverage.py entry point
+│   ├── custom_index.html      # Per-package branch drilldown (auto-generated)
+│   ├── style_cb_*.css         # coverage.py stylesheet
+│   └── src_*.html             # Per-file annotated source pages
+└── run_report_<timestamp>.html  # HTML test report — links to coverage from each test row
+```
+
+The HTML test report (`run_report_*.html`) includes a **Coverage Report** link in each test row's extras section when `reports/coverage/index.html` exists, so you can jump directly from a failing test to the coverage view.
+
+---
+
 ## Project Structure
 
 ```
@@ -1239,7 +1310,7 @@ ui-workflow-automation/
 │   ├── locators/               # Locator resolver: JSON → Selenium By
 │   ├── models/                 # Pydantic domain models (workflow_models, element_models)
 │   ├── ui/                     # BasePage, BaseComponent, DynamicPage, DynamicSection
-│   ├── utils/                  # File helpers, string utilities, screenshot manager
+│   ├── utils/                  # File helpers, string utilities, screenshot manager, coverage_index
 │   ├── waits/                  # wait_manager, expected_states, ajax_monitor, page_readiness
 │   └── workflow/               # workflow_engine, navigator, result_collector, execution_context
 ├── testdata/
@@ -1251,7 +1322,7 @@ ui-workflow-automation/
 │       └── sections/           # Reusable section definitions (referenced via $ref)
 ├── tests/
 │   ├── conftest.py             # Pytest fixtures and CLI options
-│   ├── unit/                   # Unit tests — no browser required (324 tests)
+│   ├── unit/                   # Unit tests — no browser required (363 tests)
 │   └── smoke/                  # End-to-end tests — real browser
 ├── .env.example
 ├── pytest.ini
