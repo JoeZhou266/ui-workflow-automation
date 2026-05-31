@@ -32,7 +32,7 @@ Full phase details: `.planning/milestones/v1.0-ROADMAP.md`
 - [x] Phase 12: Support Video Capture for Failed Tests (3/3 plans) — completed 2026-05-30
 - [x] Phase 13: Generate HTML Test Report with Results and Details (2/2 plans) — completed 2026-05-31
 - [x] Phase 14: Add Python unit test coverage and report in project (1/1 plan) — completed 2026-05-30
-- [ ] Phase 15: Add per-file coverage source drilldown (2 plans)
+- [x] Phase 15: Add per-file coverage source drilldown (2/2 plans) — completed 2026-05-31
 
 Plans:
 - [x] 12-01-PLAN.md — Core infrastructure: VideoManager, constants, AppConfig field, env YAML configs
@@ -41,8 +41,8 @@ Plans:
 - [x] 13-01-PLAN.md — HTML report utility: constants, html_report.py pure functions, unit tests HTML-01..09
 - [x] 13-02-PLAN.md — Pytest integration: pytest_configure hook, StashKeys, workflow_report_extras, conftest unit tests HTML-10..12
 - [x] 14-01-PLAN.md — Coverage config: pytest-cov dependency, pytest.ini addopts, .coveragerc, .gitignore
-- [ ] 15-01-PLAN.md — Branch coverage config, COVERAGE_DIR constant, build_custom_index() implementation, unit tests COV-01..06,10,11
-- [ ] 15-02-PLAN.md — conftest.py hooks: pytest_sessionfinish + coverage link in makereport, conftest unit tests COV-07..09
+- [x] 15-01-PLAN.md — Branch coverage config, COVERAGE_DIR constant, build_custom_index() implementation, unit tests COV-01..06,10,11
+- [x] 15-02-PLAN.md — conftest.py hooks: pytest_sessionfinish + coverage link in makereport, conftest unit tests COV-07..09
 
 </details>
 
@@ -64,4 +64,4 @@ Plans:
 | 12. Support Video Capture for Failed Tests | v1.1 | 3/3 | Complete   | 2026-05-30 |
 | 13. Generate HTML Test Report | v1.1 | 2/2 | Complete | 2026-05-31 |
 | 14. Add Python unit test coverage and report in project | v1.1 | 1/1 | Complete | 2026-05-30 |
-| 15. Add per-file coverage source drilldown | v1.1 | 0/2 | In progress | — |
+| 15. Add per-file coverage source drilldown | v1.1 | 2/2 | Complete | 2026-05-31 |
