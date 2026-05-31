@@ -2,6 +2,7 @@
 source = src
 omit =
     src/**/__init__.py
+branch = true
 
 [html]
 directory = reports/coverage
