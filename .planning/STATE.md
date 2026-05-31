@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Observability & Reporting
-status: in_progress
-stopped_at: Phase 13 plan 01 complete — html_report.py utility + 25 unit tests (HTML-01..09); plan 02 ready
-last_updated: "2026-05-30T23:01:39Z"
-last_activity: 2026-05-30
+status: complete
+stopped_at: Phase 13 plan 02 complete — pytest integration (pytest_configure, StashKeys, workflow_report_extras, teardown extras); all 13 phases done
+last_updated: "2026-05-31T03:07:27Z"
+last_activity: 2026-05-31
 progress:
   total_phases: 13
-  completed_phases: 12
+  completed_phases: 13
   total_plans: 18
-  completed_plans: 17
-  percent: 94
+  completed_plans: 18
+  percent: 100
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-30)
 
 **Core value:** JSON-driven browser automation — zero Python per new workflow
-**Current focus:** Planning next phase (v1.1)
+**Current focus:** v1.1 complete — all phases done
 
 ## Current Position
 
-Phase: 13 (in progress — 1/2 plans complete, executing plan 02 next)
-Milestone: v1.1 in progress
-Status: Phase 13 plan 01 complete — html_report.py utility and 25 unit tests (HTML-01..09) done
-Last activity: 2026-05-30
+Phase: 13 (complete — 2/2 plans done)
+Milestone: v1.1 complete
+Status: Phase 13 plan 02 complete — conftest.py extended with pytest_configure hook, StashKeys, workflow_report_extras fixture, and 15 unit tests (HTML-10..12); 324 unit tests passing
+Last activity: 2026-05-31
 
-Progress: [███████████████░] 94%
+Progress: [████████████████] 100%
 
 ## Accumulated Context
 
@@ -43,6 +43,7 @@ Progress: [███████████████░] 94%
 - Phase 5: D-03: Implemented sleep via isolated `_sleep_seconds()` helper on WaitManager with WARNING log and code comment per CLAUDE.md
 - [Phase ?]: D-10-01: env: namespace prefix routes to _ENV_CONFIG dict before PLACEHOLDER_REGISTRY; configure_env_resolver wired in AppConfig.__init__ after _load_yaml()
 - Phase 13-01: HTML_REPORT_DIR = "reports" (report HTML lives in reports/ root); build_step_table() uses <details>/<summary> (zero JS); _relative_path() returns None for paths outside reports_dir (XSS/path-traversal mitigation)
+- Phase 13-02: Do NOT set self_contained_html=True — relative screenshot links in FORMAT_HTML extras are verbatim (RESEARCH.md Pitfall 3); video_path stash set only when test failed; reports/assets/ gitignored
 
 ### Pending Todos
 
@@ -85,6 +86,6 @@ Note: Both items require real browser execution (new window context persistence,
 
 ## Session Continuity
 
-Last session: 2026-05-30T23:01:39Z
-Stopped at: Completed 13-01-PLAN.md — html_report utility + 25 unit tests (309 total, 0 regressions)
+Last session: 2026-05-31T03:07:27Z
+Stopped at: Completed 13-02-PLAN.md — pytest integration (conftest.py extended, 15 conftest unit tests, 324 total, 0 regressions); Phase 13 and v1.1 milestone complete
 Resume file: None
