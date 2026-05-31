@@ -264,23 +264,27 @@ class TestMissingCoverageFile:
     data_file is missing — fail-open behavior.
     """
 
+    def _empty_factory(self, data_file=".coverage"):
+        """Mock factory simulating coverage.py behavior when data file is absent:
+        returns empty measured_files list (version-independent, no real file I/O).
+        """
+        cov = MagicMock()
+        cov.get_data.return_value.measured_files.return_value = []
+        return cov
+
     def test_returns_valid_html_on_missing_data_file(self):
         from src.utils.coverage_index import build_custom_index
         with tempfile.TemporaryDirectory() as tmpdir:
-            missing = os.path.join(tmpdir, "nonexistent.coverage")
-            # coverage.Coverage.load() with missing file returns empty data (no exception)
-            # build_custom_index should return valid HTML (no files, 0% overall)
-            html = build_custom_index(coverage_dir=tmpdir, data_file=missing)
-            assert isinstance(html, str), "Must return a string even with missing data file"
-            assert "<!DOCTYPE html>" in html, "Must return valid HTML even with missing data file"
+            html = build_custom_index(coverage_dir=tmpdir, _cov_factory=self._empty_factory)
+        assert isinstance(html, str), "Must return a string even with missing data file"
+        assert "<!DOCTYPE html>" in html, "Must return valid HTML even with missing data file"
 
     def test_no_crash_on_missing_data_file(self):
         from src.utils.coverage_index import build_custom_index
         with tempfile.TemporaryDirectory() as tmpdir:
-            missing = os.path.join(tmpdir, "nonexistent.coverage")
-            # Must not raise — caller guards existence check before calling this
+            # Must not raise — uses injected empty factory (version-independent)
             try:
-                build_custom_index(coverage_dir=tmpdir, data_file=missing)
+                build_custom_index(coverage_dir=tmpdir, _cov_factory=self._empty_factory)
             except Exception as exc:
                 pytest.fail(
                     f"build_custom_index must not crash on missing data file; "
