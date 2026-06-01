@@ -6,7 +6,7 @@ A data-driven Selenium browser automation framework for Python 3.9. Define brows
 ![Selenium](https://img.shields.io/badge/selenium-%E2%89%A54.15-brightgreen)
 ![Pydantic](https://img.shields.io/badge/pydantic-v2-orange)
 ![pytest](https://img.shields.io/badge/pytest-%E2%89%A57.4-blueviolet)
-![Tests](https://img.shields.io/badge/unit_tests-363_passing-success)
+![Tests](https://img.shields.io/badge/unit_tests-372_passing-success)
 ![Coverage](https://img.shields.io/badge/coverage-reports%2Fcoverage%2F-informational)
 
 ---
@@ -54,7 +54,7 @@ A data-driven Selenium browser automation framework for Python 3.9. Define brows
 
 - **Zero Python per workflow** — define tabs, pages, sections, and element interactions entirely in JSON
 - **Composable with `$ref`** — split large workflows across multiple files; reference shared tabs/pages/sections by relative path
-- **Workflow parameters and conditional branches** — declare named parameters at the workflow root and include/exclude tab or page files at load time using `condition` expressions
+- **Workflow parameters and conditional branches** — declare named parameters at the workflow root and include/exclude tab or page files at load time using `condition` expressions; supports `==`, `!=`, and compound `&&` / `||` logical operators with `&&`-before-`||` precedence
 - **Dynamic value generation** — built-in placeholder tokens for random names, SIN numbers, dates, and environment config values; extensible via a registry
 - **AJAX-aware synchronisation** — every wait is explicit; `WaitManager` wraps `WebDriverWait` with 19 condition types including jQuery idle detection, spinner/overlay removal, and attribute/text assertions
 - **Conditional element execution** — mark any element `skip_if_not_visible: true` to record it as SKIPPED rather than FAILED when absent from the DOM
@@ -388,6 +388,8 @@ Add a `parameters` list to the workflow root. Each entry is an object with `name
 
 Attach a `condition` key as a sibling of `$ref` on any tab, page, or section reference. When the condition evaluates to `false`, the node is silently omitted from its parent list.
 
+**Simple condition (single atom):**
+
 ```
 "condition": "${<param_name>} <operator> '<value>'"
 ```
@@ -397,10 +399,30 @@ Attach a `condition` key as a sibling of `$ref` on any tab, page, or section ref
 | `==` | Parameter equals value | `"${account_type} == 'OPEN'"` |
 | `!=` | Parameter does not equal value | `"${account_type} != 'PREMIUM'"` |
 
+**Compound conditions (`&&` / `||`):**
+
+Multiple atoms can be combined with `&&` (AND) and `||` (OR). `&&` binds tighter than `||`.
+
+```
+"condition": "${param1} == 'A' && ${param2} == 'B'"
+"condition": "${param1} == 'A' || ${param2} == 'B'"
+"condition": "${param1} == 'A' && ${param2} == 'B' || ${param3} == 'C'"
+```
+
+The third example evaluates as `(param1 == 'A' AND param2 == 'B') OR param3 == 'C'`.
+
+| Operator | Binding | Meaning |
+|---|---|---|
+| `&&` | higher precedence | Both atoms must be true |
+| `\|\|` | lower precedence | Either atom must be true |
+
 **Rules:**
 - `${param_name}` must match a name declared in `parameters`. An undefined name raises `WorkflowValidationError` at load time.
 - The right-hand side value must be wrapped in **single quotes**: `'value'`.
 - All comparisons are **string equality** — no type coercion, no numeric comparison.
+- In compound conditions, **all atoms are evaluated before combining** — an undefined parameter in any atom raises `WorkflowValidationError` regardless of where it appears, even in a position that logical short-circuit would normally skip.
+- Extra whitespace around `&&` and `||` is tolerated.
+- Parentheses are not supported — use `&&`-before-`||` precedence instead.
 - A `$ref` node without a `condition` key resolves unconditionally, same as before.
 - `condition` is the only sibling key on a `$ref` node that is evaluated. All other sibling keys are ignored.
 
@@ -477,6 +499,46 @@ And a page file can apply conditions to its own section references:
 }
 ```
 
+#### Example — compound condition on a single $ref node
+
+Use `&&` when a tab or page should only be included if multiple conditions are all true:
+
+```json
+{
+  "workflow_name": "Onboarding",
+  "start_url": "https://example.com/app",
+  "parameters": [
+    { "name": "account_type", "value": "OPEN" },
+    { "name": "kyc_required", "value": "false" }
+  ],
+  "tabs": [
+    { "$ref": "./tabs/registration_tab.json" },
+    {
+      "$ref": "./tabs/summary_tab.json",
+      "condition": "${account_type} == 'OPEN' && ${kyc_required} == 'false'"
+    },
+    {
+      "$ref": "./tabs/kyc_tab.json",
+      "condition": "${account_type} == 'OPEN' && ${kyc_required} == 'true'"
+    },
+    { "$ref": "./tabs/confirmation_tab.json" }
+  ]
+}
+```
+
+With `account_type = "OPEN"` and `kyc_required = "false"`:
+- `summary_tab.json` — **included** (both atoms true)
+- `kyc_tab.json` — **omitted** (second atom false: `"false" == 'true'` → false)
+
+Use `||` when a tab should be included if *any* condition is true:
+
+```json
+{
+  "$ref": "./tabs/premium_or_managed_tab.json",
+  "condition": "${account_type} == 'PREMIUM' || ${account_type} == 'MANAGED'"
+}
+```
+
 #### Example — multiple parameters
 
 Multiple parameters can be declared and referenced independently across different `$ref` nodes in the same workflow:
@@ -508,7 +570,7 @@ Multiple parameters can be declared and referenced independently across differen
 }
 ```
 
-Each `$ref` node evaluates its own condition independently. There is no AND/OR between conditions on different nodes.
+Each `$ref` node evaluates its own condition independently. Compound `&&` / `||` logic operates within a single condition string — there is no implicit AND/OR between conditions on separate nodes.
 
 #### Driving parameters from environment config
 
@@ -556,6 +618,8 @@ WorkflowLoader.load(path)
   │       ├─ For each $ref node:
   │       │     ├─ Read condition sibling key (if present)
   │       │     ├─ evaluate_condition(condition, params)
+  │       │     │     Supports simple atoms (${p} == 'v') and compound
+  │       │     │     conditions joined by && / || (&&-before-|| precedence)
   │       │     │     true  → load and resolve the referenced file recursively
   │       │     │     false → return None (omitted from parent list)
   │       │     └─ No condition → load unconditionally
@@ -571,6 +635,8 @@ WorkflowLoader.load(path)
 | `condition` evaluates to `false` | `$ref` node silently omitted from parent list |
 | `condition` evaluates to `true` | Referenced file is loaded and resolved recursively |
 | `$ref` node has no `condition` | Resolves unconditionally (same as before) |
+| Compound condition has an undefined param in any atom | `WorkflowValidationError` — all atoms are evaluated before combining, so undefined params are never silently skipped by short-circuit |
+| Compound condition has a malformed atom (e.g. `bad_atom`) | `WorkflowValidationError: Malformed condition atom` |
 | Parameter `value` contains invalid `${env:KEY}` | `WorkflowValidationError` — YAML key not found |
 
 > **Scope:** `parameters` is declared at the workflow root only. Tabs, pages, and sections inherit the parameters read-only — there are no per-level parameter blocks and no parameter override rules.
@@ -1322,7 +1388,7 @@ ui-workflow-automation/
 │       └── sections/           # Reusable section definitions (referenced via $ref)
 ├── tests/
 │   ├── conftest.py             # Pytest fixtures and CLI options
-│   ├── unit/                   # Unit tests — no browser required (363 tests)
+│   ├── unit/                   # Unit tests — no browser required (372 tests)
 │   └── smoke/                  # End-to-end tests — real browser
 ├── .env.example
 ├── pytest.ini
