@@ -1,8 +1,8 @@
 # UI Workflow Automation Framework
 
-A data-driven Selenium browser automation framework for Python 3.9. Define browser workflows entirely in JSON — no Python code changes required to add new test scenarios. The framework reads a workflow file, validates it, opens a browser, and executes a hierarchy of Tabs → Pages → Sections → Elements with full AJAX synchronisation support.
+A data-driven Selenium browser automation framework for Python 3.14. Define browser workflows entirely in JSON — no Python code changes required to add new test scenarios. The framework reads a workflow file, validates it, opens a browser, and executes a hierarchy of Tabs → Pages → Sections → Elements with full AJAX synchronisation support.
 
-![Python](https://img.shields.io/badge/python-3.9.13-blue)
+![Python](https://img.shields.io/badge/python-3.14.5-blue)
 ![Selenium](https://img.shields.io/badge/selenium-%E2%89%A54.15-brightgreen)
 ![Pydantic](https://img.shields.io/badge/pydantic-v2-orange)
 ![pytest](https://img.shields.io/badge/pytest-%E2%89%A57.4-blueviolet)
@@ -125,7 +125,7 @@ WorkflowEngine
 
 | Requirement | Version / Notes |
 |---|---|
-| Python | 3.9.13 (other 3.9.x may work; 3.10+ untested) |
+| Python | 3.14.5 |
 | Google Chrome | Latest stable — or provide `driver_path` / `browser_binary_path` for a specific version |
 | ChromeDriver | Auto-managed by `webdriver-manager`, or supply manually via `DRIVER_PATH` |
 | Firefox | Optional — required only when `--browser firefox` |
@@ -144,7 +144,7 @@ git clone <repo-url>
 cd ui-workflow-automation
 
 # 2. Create and activate a virtual environment
-python3.9 -m venv .venv
+python3.14 -m venv .venv
 # macOS / Linux
 source .venv/bin/activate
 # Windows

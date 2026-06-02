@@ -6,7 +6,7 @@ build-backend = "setuptools.backends.legacy:build"
 name = "ui-workflow-automation"
 version = "0.1.0"
 description = "Data-driven Selenium workflow automation framework"
-requires-python = ">=3.9"
+requires-python = ">=3.14"
 dependencies = [
     "selenium>=4.15.0",
     "pytest>=7.4.0",

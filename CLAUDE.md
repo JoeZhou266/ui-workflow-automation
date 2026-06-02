@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project goal
 
-Data-driven Selenium workflow automation framework in **Python 3.9.13**. Reads workflow definitions from JSON files and executes browser interactions across a hierarchy of: Workflow → Tabs → Pages → Sections → Elements.
+Data-driven Selenium workflow automation framework in **Python 3.14.5**. Reads workflow definitions from JSON files and executes browser interactions across a hierarchy of: Workflow → Tabs → Pages → Sections → Elements.
 
 ## Commands
 
@@ -36,7 +36,7 @@ pytest --env qa
 
 ## Stack
 
-- **Python 3.9.13** — use `from __future__ import annotations` for forward refs
+- **Python 3.14.5** — `from __future__ import annotations` retained in source files (harmless on 3.14)
 - **selenium** — browser automation
 - **pytest** — test runner with fixtures for driver lifecycle
 - **pydantic v1 or v2** — JSON schema validation (check installed version before using v2 syntax)
