@@ -438,14 +438,14 @@ Phase 17 introduces **`VP-`** (Value-Parameters) as the new prefix. Tests live i
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Parameter vs. registry lookup priority**
+1. **Parameter vs. registry lookup priority** — RESOLVED: PLACEHOLDER_REGISTRY checked first; parameters checked second (confirmed by VP-03 test)
    - What we know: If a parameter is named `"sin_number"`, should it shadow the SIN generator or vice versa?
    - What's unclear: The spec does not address this conflict.
    - Recommendation: Registry first, then params. Document as a constraint in workflow JSON authoring.
 
-2. **Error behavior: raise or return unchanged for unknown `${param_name}` tokens?**
+2. **Error behavior: raise or return unchanged for unknown `${param_name}` tokens?** — RESOLVED: raise ValueError with registered keys and available params listed (confirmed by VP-02, VP-04, VP-06)
    - What we know: Current behavior for unknown placeholders is `ValueError` (fail fast). Phase 11's condition evaluator also fails fast on undefined param names.
    - What's unclear: Should an element value with `${undefined}` silently pass through, or raise? Raising is consistent with the existing design.
    - Recommendation: Raise `ValueError`. Consistent with existing behavior. Planner should lock this.
