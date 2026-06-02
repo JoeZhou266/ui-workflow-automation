@@ -80,6 +80,7 @@ Note: Both items require real browser execution (new window context persistence,
 - Phase 15 added: Add per-file coverage source drilldown — JaCoCo-style line-level view per source file linked from HTML coverage report
 - Phase 16 added: Support logical operators (&& / ||) in conditional $ref — compound conditions like `"${account_type == 'open'} && ${kyc_required != 'true'}"` in workflow parameter $ref resolution
 - Phase 17 added: Support using parameters defined in workflow in element values as placeholders
+- Phase 18 added: Support setting the log file path, outputting and rolling every day
 
 ### Phase 6 Decisions
 
