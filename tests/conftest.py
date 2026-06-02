@@ -168,7 +168,7 @@ def app_config(request) -> AppConfig:
     if browser_override:
         config.browser = browser_override.lower()
 
-    configure_logging(config.log_level)
+    configure_logging(config.log_level, config.log_file_path)
     return config
 
 

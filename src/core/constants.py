@@ -19,6 +19,10 @@ SCREENSHOT_DATE_FORMAT: str = "%Y%m%d_%H%M%S"
 VIDEO_DIR: str = "reports/videos"
 VIDEO_DATE_FORMAT: str = "%Y%m%d_%H%M%S"
 
+# Log
+LOG_DIR: str = "logs"
+LOG_FILE_NAME: str = "workflow.log"
+
 # HTML Report
 HTML_REPORT_DIR: str = "reports"
 HTML_REPORT_DATE_FORMAT: str = "%Y%m%d_%H%M%S"

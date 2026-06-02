@@ -62,6 +62,7 @@ class AppConfig:
         )
         self.driver_path: Optional[str] = self._resolve_optional("DRIVER_PATH", "driver_path")
         self.browser_binary_path: Optional[str] = self._resolve_optional("BROWSER_BINARY_PATH", "browser_binary_path")
+        self.log_file_path: Optional[str] = self._resolve_optional("LOG_FILE_PATH", "log_file_path")
 
     def _load_yaml(self, env: str, config_dir: str) -> dict:
         path = Path(config_dir) / f"env.{env}.yaml"
