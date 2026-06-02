@@ -292,3 +292,96 @@ class TestEnvPlaceholder:
 
     def test_configure_env_resolver_callable(self):
         assert callable(configure_env_resolver)
+
+
+# ---------------------------------------------------------------------------
+# Phase 17 — VP-01..VP-10: Parameter value expansion in element values
+# ---------------------------------------------------------------------------
+
+
+class TestParamExpansion:
+    """VP-01..VP-10: Workflow parameter names resolve as ${param_name} in element values."""
+
+    # VP-01
+    def test_param_resolved_by_name(self):
+        result = resolve_dynamic_value("${account_type}", params={"account_type": "OPEN"})
+        assert result == "OPEN"
+
+    # VP-02
+    def test_unknown_param_raises_with_params_listed(self):
+        with pytest.raises(ValueError) as exc_info:
+            resolve_dynamic_value("${account_type}", params={})
+        msg = str(exc_info.value)
+        assert "Unknown placeholder" in msg
+        assert "Workflow params:" in msg
+
+    # VP-03
+    def test_registry_priority_over_params(self):
+        # "sin_number" is in PLACEHOLDER_REGISTRY; a param with the same name must NOT shadow it
+        result = resolve_dynamic_value("${sin_number}", params={"sin_number": "fixed"})
+        # Registry generator returns a 3-digit chunk, not the static "fixed" value
+        assert result != "fixed"
+        assert len(result) == 3 and result.isdigit()
+
+    # VP-04
+    def test_no_params_unknown_key_raises(self):
+        with pytest.raises(ValueError, match="Unknown placeholder"):
+            resolve_dynamic_value("${param_name}", params=None)
+
+    # VP-05
+    def test_value_resolver_with_params(self):
+        r = ValueResolver(params={"acct": "123"})
+        assert r.resolve("${acct}") == "123"
+
+    # VP-06
+    def test_value_resolver_unknown_raises(self):
+        r = ValueResolver(params={})
+        with pytest.raises(ValueError, match="Unknown placeholder"):
+            r.resolve("${unknown_key}")
+
+    # VP-07
+    def test_non_string_passthrough(self):
+        r = ValueResolver(params={"x": "val"})
+        assert r.resolve(42) == 42
+
+    # VP-08
+    def test_none_passthrough(self):
+        r = ValueResolver(params={"x": "val"})
+        assert r.resolve(None) is None
+
+    # VP-09
+    def test_partial_token_not_expanded(self):
+        # Full-value-only semantics: "prefix_${name}" must NOT expand
+        r = ValueResolver(params={"name": "Alice"})
+        assert r.resolve("prefix_${name}") == "prefix_${name}"
+
+    # VP-10
+    def test_action_factory_integration(self):
+        """ActionFactory with params resolves ${param} element value via injected resolver."""
+        from unittest.mock import MagicMock, patch
+        from src.actions.action_factory import ActionFactory
+
+        mock_page = MagicMock()
+        mock_wm = MagicMock()
+        factory = ActionFactory(mock_page, mock_wm, params={"acct": "OPEN"})
+
+        element = MagicMock()
+        element.value = "${acct}"
+        element.pre_wait = None
+        element.post_wait = None
+        element.retryable = False
+        element.retry_count = 0
+        element.options = {}
+        element.name = "test_element"
+        element.action.value = "input"
+        element.type.value = "text"
+
+        resolved_values = []
+
+        def capture_execute(elem, resolved_val):
+            resolved_values.append(resolved_val)
+
+        with patch.object(factory._executor, "execute", side_effect=capture_execute):
+            factory.run(element)
+
+        assert resolved_values == ["OPEN"]
