@@ -52,12 +52,13 @@ Plans:
 
 - [x] Phase 16: Support logical operators (&& / ||) in conditional $ref (1/1 plan) — completed 2026-05-31
 - [x] Phase 17: Support using parameters defined in workflow in element values as placeholders (2/2 plans) — completed 2026-06-02
-- [ ] Phase 18: Support setting the log file path, outputting and rolling every day (0/0 plans) — not planned yet
+- [ ] Phase 18: Support setting the log file path, outputting and rolling every day (1/1 plan) — planned
 
 Plans:
 - [x] 16-01-PLAN.md — TDD: add compound condition tests (RED) then implement two-pass token-split evaluator (GREEN); 9 new tests (OP-01..10)
 - [x] 17-01-PLAN.md — TDD RED: write TestParamExpansion class with VP-01..VP-10 failing stubs in test_value_resolver.py
 - [x] 17-02-PLAN.md — TDD GREEN: implement params kwarg in value_resolver.py, remove singleton in action_factory.py, wire params through workflow_engine.py
+- [ ] 18-01-PLAN.md — Constants, AppConfig field, extended configure_logging with TimedRotatingFileHandler, env YAML examples, .gitignore, 12 unit tests (LOG-01..LOG-12)
 
 </details>
 
@@ -82,4 +83,4 @@ Plans:
 | 15. Add per-file coverage source drilldown | v1.1 | 2/2 | Complete | 2026-05-31 |
 | 16. Support logical operators (&& / \|\|) in conditional $ref | v1.2 | 1/1 | Complete | 2026-05-31 |
 | 17. Support using parameters defined in workflow in element values as placeholders | v1.2 | 2/2 | Complete | 2026-06-02 |
-| 18. Support setting the log file path, outputting and rolling every day | v1.2 | 0/0 | Not planned | — |
+| 18. Support setting the log file path, outputting and rolling every day | v1.2 | 0/1 | Planned | — |
