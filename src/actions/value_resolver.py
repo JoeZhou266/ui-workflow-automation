@@ -198,7 +198,7 @@ def resolve_dynamic_value(value: str, params: dict | None = None) -> str:
         return str(_ENV_CONFIG[env_key])
     if key in PLACEHOLDER_REGISTRY:
         return PLACEHOLDER_REGISTRY[key]()
-    if params and key in params:
+    if params is not None and key in params:
         return str(params[key])
     raise ValueError(
         f"Unknown placeholder '${{{key}}}'. "
