@@ -48,12 +48,15 @@ Plans:
 </details>
 
 <details open>
-<summary>✅ v1.2 Advanced Conditional Logic (Phases 16+) — SHIPPED 2026-05-31</summary>
+<summary>🚧 v1.2 Advanced Conditional Logic (Phases 16+) — in progress</summary>
 
 - [x] Phase 16: Support logical operators (&& / ||) in conditional $ref (1/1 plan) — completed 2026-05-31
+- [ ] Phase 17: Support using parameters defined in workflow in element values as placeholders (2/2 plans) — not started
 
 Plans:
 - [x] 16-01-PLAN.md — TDD: add compound condition tests (RED) then implement two-pass token-split evaluator (GREEN); 9 new tests (OP-01..10)
+- [ ] 17-01-PLAN.md — TDD RED: write TestParamExpansion class with VP-01..VP-10 failing stubs in test_value_resolver.py
+- [ ] 17-02-PLAN.md — TDD GREEN: implement params kwarg in value_resolver.py, remove singleton in action_factory.py, wire params through workflow_engine.py
 
 </details>
 
@@ -77,3 +80,4 @@ Plans:
 | 14. Add Python unit test coverage and report in project | v1.1 | 1/1 | Complete | 2026-05-30 |
 | 15. Add per-file coverage source drilldown | v1.1 | 2/2 | Complete | 2026-05-31 |
 | 16. Support logical operators (&& / \|\|) in conditional $ref | v1.2 | 1/1 | Complete | 2026-05-31 |
+| 17. Support using parameters defined in workflow in element values as placeholders | v1.2 | 0/2 | In progress | — |
