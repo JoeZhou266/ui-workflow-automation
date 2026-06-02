@@ -6,6 +6,7 @@ from typing import Optional
 from selenium.webdriver.remote.webdriver import WebDriver
 
 from src.actions.action_factory import ActionFactory
+from src.actions.value_resolver import resolve_dynamic_value
 from src.core.enums import FailurePhase
 from src.core.exceptions import ElementActionError, PageLoadError, SkipElementSignal, WaitTimeoutError
 from src.core.logger import get_logger
@@ -57,6 +58,10 @@ class WorkflowEngine:
         self._page = BasePage(driver, self._wm, self._screenshots)
         self._navigator = Navigator(driver, base_url)
         self._collector = ResultCollector(definition.workflow_name)
+        self._params: dict = {
+            p.name: resolve_dynamic_value(p.value)
+            for p in (self._definition.parameters or [])
+        }
 
     def run(self) -> ExecutionSummary:
         """Execute the full workflow and return the result summary."""
@@ -124,7 +129,7 @@ class WorkflowEngine:
             "[Element] %s | action=%s type=%s",
             element.name, element.action.value, element.type.value,
         )
-        factory = ActionFactory(section, self._wm)
+        factory = ActionFactory(section, self._wm, params=self._params)
         start_ms = time.monotonic()
 
         try:

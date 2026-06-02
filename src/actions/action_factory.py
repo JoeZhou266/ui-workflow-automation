@@ -12,8 +12,6 @@ from src.waits.wait_manager import WaitManager
 
 logger = get_logger("action_factory")
 
-_resolver = ValueResolver()
-
 
 class ActionFactory:
     """Orchestrates the full pre_wait → action → post_wait cycle for one element.
@@ -21,10 +19,11 @@ class ActionFactory:
     This is the main entry point called by the workflow engine for each element.
     """
 
-    def __init__(self, page: BasePage, wait_manager: WaitManager) -> None:
+    def __init__(self, page: BasePage, wait_manager: WaitManager, params: dict | None = None) -> None:
         self._executor = ElementActions(page, wait_manager)
         self._wm = wait_manager
         self._page = page
+        self._resolver = ValueResolver(params=params)
 
     def run(self, element: ElementDefinition) -> None:
         """Run the complete action sequence for a single element.
@@ -48,7 +47,7 @@ class ActionFactory:
                 )
                 raise SkipElementSignal(element.name)
 
-        resolved_value = _resolver.resolve(element.value)
+        resolved_value = self._resolver.resolve(element.value)
 
         # 1. Pre-wait
         if element.pre_wait:
