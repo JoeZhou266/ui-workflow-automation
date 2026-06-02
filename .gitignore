@@ -24,6 +24,9 @@ reports/coverage/
 allure-results/
 allure-report/
 
+# Log files (daily-rolling output — runtime artefacts, not committed)
+logs/
+
 # webdriver-manager cache
 .wdm/
 
