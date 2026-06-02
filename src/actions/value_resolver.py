@@ -154,22 +154,31 @@ PLACEHOLDER_REGISTRY: Dict[str, Callable[[], str]] = {
 }
 
 
-def resolve_dynamic_value(value: str) -> str:
-    """Resolve a ``${placeholder}`` token to a generated value.
+def resolve_dynamic_value(value: str, params: dict | None = None) -> str:
+    """Resolve a ``${placeholder}`` token to a generated or parameter value.
+
+    Resolution order:
+
+    1. ``${env:KEY}`` — env config lookup (existing)
+    2. ``PLACEHOLDER_REGISTRY`` — dynamic generator (existing)
+    3. ``params`` dict — workflow parameter values (Phase 17)
 
     Only a *full-value* token (the entire string is the token) is expanded.
-    A value like ``"prefix_${sin_number}"`` is returned unchanged.
+    A value like ``"prefix_${account_type}"`` is returned unchanged.
 
     Args:
         value: The raw string from an :class:`~src.models.workflow_models.ElementDefinition`.
+        params: Optional dict mapping workflow parameter name to its resolved string value.
+            When provided, checked after the registry if the key is not a registered placeholder.
 
     Returns:
-        The generated value if *value* is a registered placeholder token,
+        The resolved value if *value* is a known placeholder token,
         or *value* unchanged if it contains no placeholder.
 
     Raises:
+        TypeError: If *value* is not a string.
         ValueError: If the token matches the placeholder pattern but is not
-            registered in :data:`PLACEHOLDER_REGISTRY`.
+            registered in :data:`PLACEHOLDER_REGISTRY` and not in *params*.
     """
     if not isinstance(value, str):
         raise TypeError(
@@ -187,12 +196,15 @@ def resolve_dynamic_value(value: str) -> str:
                 f"Available keys: {sorted(_ENV_CONFIG)}"
             )
         return str(_ENV_CONFIG[env_key])
-    if key not in PLACEHOLDER_REGISTRY:
-        raise ValueError(
-            f"Unknown placeholder '${{{key}}}'. "
-            f"Registered keys: {sorted(PLACEHOLDER_REGISTRY)}"
-        )
-    return PLACEHOLDER_REGISTRY[key]()
+    if key in PLACEHOLDER_REGISTRY:
+        return PLACEHOLDER_REGISTRY[key]()
+    if params and key in params:
+        return str(params[key])
+    raise ValueError(
+        f"Unknown placeholder '${{{key}}}'. "
+        f"Registered keys: {sorted(PLACEHOLDER_REGISTRY)}"
+        + (f". Workflow params: {sorted(params)}" if params is not None else "")
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -205,7 +217,15 @@ class ValueResolver:
 
     Handles ``${placeholder}`` token expansion via :func:`resolve_dynamic_value`
     and passes non-string values through unchanged.
+
+    Args:
+        params: Optional dict mapping workflow parameter name to its resolved string value.
+            Injected by :class:`~src.actions.action_factory.ActionFactory` from
+            :class:`~src.workflow.workflow_engine.WorkflowEngine`.
     """
+
+    def __init__(self, params: dict | None = None) -> None:
+        self._params: dict = params or {}
 
     def resolve(self, value: Optional[Any]) -> Optional[Any]:
         """Return the resolved value.
@@ -223,4 +243,4 @@ class ValueResolver:
         return value
 
     def _resolve_string(self, value: str) -> str:
-        return resolve_dynamic_value(value)
+        return resolve_dynamic_value(value, params=self._params)
