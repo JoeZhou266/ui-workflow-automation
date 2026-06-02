@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Advanced Conditional Logic
 status: in_progress
-stopped_at: Phase 16 complete — v1.2 milestone complete
-last_updated: "2026-05-31T19:45:00Z"
-last_activity: 2026-05-31
+stopped_at: Phase 17 complete — parameter value expansion implemented and verified
+last_updated: "2026-06-02T00:00:00Z"
+last_activity: 2026-06-02
 progress:
-  total_phases: 16
-  completed_phases: 16
-  total_plans: 22
-  completed_plans: 22
+  total_phases: 17
+  completed_phases: 17
+  total_plans: 24
+  completed_plans: 24
   percent: 100
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-30)
 
 **Core value:** JSON-driven browser automation — zero Python per new workflow
-**Current focus:** v1.2 complete — Phase 16 verified and shipped
+**Current focus:** v1.2 in progress — Phase 17 verified and shipped
 
 ## Current Position
 
-Phase: 16 (complete — verified 2026-05-31)
-Milestone: v1.2 complete
-Status: All 16 phases complete — milestone ready for close
-Last activity: 2026-05-31
+Phase: 17 (complete 2026-06-02)
+Milestone: v1.2 in progress
+Status: Phase 17 complete — all 2 plans executed, 54 unit tests green, verification passed
+Last activity: 2026-06-02
 
 Progress: [████████████████] 100%
 
@@ -79,6 +79,7 @@ Note: Both items require real browser execution (new window context persistence,
 - Phase 14 added: Add Python unit test coverage and report in project
 - Phase 15 added: Add per-file coverage source drilldown — JaCoCo-style line-level view per source file linked from HTML coverage report
 - Phase 16 added: Support logical operators (&& / ||) in conditional $ref — compound conditions like `"${account_type == 'open'} && ${kyc_required != 'true'}"` in workflow parameter $ref resolution
+- Phase 17 added: Support using parameters defined in workflow in element values as placeholders
 
 ### Phase 6 Decisions
 
