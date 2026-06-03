@@ -6,7 +6,7 @@ A data-driven Selenium browser automation framework for Python 3.14. Define brow
 ![Selenium](https://img.shields.io/badge/selenium-%E2%89%A54.15-brightgreen)
 ![Pydantic](https://img.shields.io/badge/pydantic-v2-orange)
 ![pytest](https://img.shields.io/badge/pytest-%E2%89%A57.4-blueviolet)
-![Tests](https://img.shields.io/badge/unit_tests-372_passing-success)
+![Tests](https://img.shields.io/badge/unit_tests-394_passing-success)
 ![Coverage](https://img.shields.io/badge/coverage-reports%2Fcoverage%2F-informational)
 
 ---
@@ -28,6 +28,7 @@ A data-driven Selenium browser automation framework for Python 3.14. Define brow
   - [Opening and switching browser windows/tabs](#opening-and-switching-browser-windowstabs)
   - [Executing JavaScript in the browser](#executing-javascript-in-the-browser)
   - [Dynamic placeholder values](#dynamic-placeholder-values)
+  - [Workflow parameter values in elements](#workflow-parameter-values-in-elements)
   - [${env:KEY} config placeholders](#envkey-config-placeholders)
   - [Disambiguating checkboxes by name and value](#disambiguating-checkboxes-by-name-and-value)
   - [Skipping invisible optional elements](#skipping-invisible-optional-elements)
@@ -55,6 +56,7 @@ A data-driven Selenium browser automation framework for Python 3.14. Define brow
 - **Zero Python per workflow** — define tabs, pages, sections, and element interactions entirely in JSON
 - **Composable with `$ref`** — split large workflows across multiple files; reference shared tabs/pages/sections by relative path
 - **Workflow parameters and conditional branches** — declare named parameters at the workflow root and include/exclude tab or page files at load time using `condition` expressions; supports `==`, `!=`, and compound `&&` / `||` logical operators with `&&`-before-`||` precedence
+- **Parameter value expansion in elements** — use `${param_name}` as an element `value` to inject a workflow parameter at action-dispatch time; parameters defined in the workflow `parameters` block are resolved alongside built-in placeholders
 - **Dynamic value generation** — built-in placeholder tokens for random names, SIN numbers, dates, and environment config values; extensible via a registry
 - **AJAX-aware synchronisation** — every wait is explicit; `WaitManager` wraps `WebDriverWait` with 19 condition types including jQuery idle detection, spinner/overlay removal, and attribute/text assertions
 - **Conditional element execution** — mark any element `skip_if_not_visible: true` to record it as SKIPPED rather than FAILED when absent from the DOM
@@ -64,6 +66,7 @@ A data-driven Selenium browser automation framework for Python 3.14. Define brow
 - **Structured results** — every step returns a typed `StepResult` with status, duration, failure phase, and screenshot path
 - **HTML test report** — every `pytest` run auto-generates a timestamped HTML report in `reports/` with per-test workflow step drill-downs (collapsible table, color-coded pass/fail/skip rows) and video links for failed tests
 - **Test coverage reports** — pytest-cov runs automatically on every `pytest` invocation, producing a standard HTML report at `reports/coverage/index.html` and a per-package branch drilldown at `reports/coverage/custom_index.html` (Branch / BrPart columns, per-file links)
+- **Daily-rolling log file** — opt-in file logging via `LOG_FILE_PATH` env var or `log_file_path` YAML key; rotates at midnight, retains 30 days of backups, UTF-8; `logs/` is gitignored; stdout logging is always active regardless
 
 ---
 
@@ -211,6 +214,7 @@ record_video: false       # set to true to capture .mp4 for smoke tests (require
 videos_dir: reports/videos
 # driver_path:          # e.g. /usr/local/bin/chromedriver  (leave commented to use webdriver-manager)
 # browser_binary_path:  # e.g. /opt/google/chrome/chrome    (leave commented to use system default)
+# log_file_path:        # e.g. logs/workflow.log             (leave commented to disable file logging)
 ```
 
 Every top-level key in the YAML file is also accessible from workflow JSON via `${env:KEY}` — see [`${env:KEY}` config placeholders](#envkey-config-placeholders).
@@ -237,6 +241,7 @@ Every top-level key in the YAML file is also accessible from workflow JSON via `
 | `LOG_LEVEL` | `INFO` | `DEBUG`, `INFO`, `WARNING`, or `ERROR` |
 | `DRIVER_PATH` | _(auto via webdriver-manager)_ | Absolute path to the WebDriver binary |
 | `BROWSER_BINARY_PATH` | _(system default)_ | Absolute path to the browser executable |
+| `LOG_FILE_PATH` | _(disabled)_ | Path for the daily-rolling log file (e.g. `logs/workflow.log`). When set, a `TimedRotatingFileHandler` is added alongside stdout. Rotates at midnight, retains 30 days. Parent directory is auto-created. |
 
 ### Pytest CLI options
 
@@ -756,6 +761,61 @@ Any `value` field in an `ElementDefinition` that is a `${token}` pattern is auto
 > **SIN chunking:** Three consecutive `${sin_number}` elements automatically receive chunks 1, 2, and 3 of the same 9-digit SIN — designed for forms that split a SIN into three separate 3-digit fields.
 
 > **Unknown tokens raise at runtime.** If `${token}` does not match a registered key, `resolve_dynamic_value()` raises `ValueError`. Check the token spelling against the built-in table, or register it (see [Extending the Framework](#extending-the-framework)).
+
+---
+
+### Workflow parameter values in elements
+
+Parameters declared in the workflow `parameters` block can be used as `${param_name}` tokens in any element `value` field. Resolution happens at action-dispatch time — the same mechanism as built-in placeholders — so parameter values flow through the same expansion path without requiring any changes to the element or action code.
+
+```json
+{
+  "workflow_name": "Onboarding",
+  "start_url": "https://example.com/app",
+  "parameters": [
+    { "name": "account_type", "value": "OPEN" },
+    { "name": "applicant_name", "value": "Jane Smith" }
+  ],
+  "tabs": [
+    {
+      "name": "Application",
+      "order": 1,
+      "pages": [
+        {
+          "name": "Details",
+          "order": 1,
+          "sections": [
+            {
+              "name": "Applicant",
+              "order": 1,
+              "elements": [
+                {
+                  "name": "Full Name",
+                  "type": "text",
+                  "action": "input",
+                  "locator": { "by": "id", "value": "applicant-name" },
+                  "value": "${applicant_name}"
+                },
+                {
+                  "name": "Account Type",
+                  "type": "text",
+                  "action": "input",
+                  "locator": { "by": "id", "value": "account-type" },
+                  "value": "${account_type}"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+`${applicant_name}` resolves to `"Jane Smith"` and `${account_type}` resolves to `"OPEN"` at the moment each element is dispatched. Parameters override built-in tokens of the same name — declare unique names to avoid collisions.
+
+> **Scope:** Only parameters declared in the workflow `parameters` block are available as `${param_name}` tokens in element values. Parameters from parent workflows (via `$ref`) are not inherited.
 
 ---
 
@@ -1388,7 +1448,7 @@ ui-workflow-automation/
 │       └── sections/           # Reusable section definitions (referenced via $ref)
 ├── tests/
 │   ├── conftest.py             # Pytest fixtures and CLI options
-│   ├── unit/                   # Unit tests — no browser required (372 tests)
+│   ├── unit/                   # Unit tests — no browser required (394 tests)
 │   └── smoke/                  # End-to-end tests — real browser
 ├── .env.example
 ├── pytest.ini
