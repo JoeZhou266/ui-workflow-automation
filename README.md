@@ -53,20 +53,31 @@ A data-driven Selenium browser automation framework for Python 3.14. Define brow
 
 ### Key capabilities
 
-- **Zero Python per workflow** — define tabs, pages, sections, and element interactions entirely in JSON
-- **Composable with `$ref`** — split large workflows across multiple files; reference shared tabs/pages/sections by relative path
-- **Workflow parameters and conditional branches** — declare named parameters at the workflow root and include/exclude tab or page files at load time using `condition` expressions; supports `==`, `!=`, and compound `&&` / `||` logical operators with `&&`-before-`||` precedence
-- **Parameter value expansion in elements** — use `${param_name}` as an element `value` to inject a workflow parameter at action-dispatch time; parameters defined in the workflow `parameters` block are resolved alongside built-in placeholders
-- **Dynamic value generation** — built-in placeholder tokens for random names, SIN numbers, dates, and environment config values; extensible via a registry
-- **AJAX-aware synchronisation** — every wait is explicit; `WaitManager` wraps `WebDriverWait` with 19 condition types including jQuery idle detection, spinner/overlay removal, and attribute/text assertions
-- **Conditional element execution** — mark any element `skip_if_not_visible: true` to record it as SKIPPED rather than FAILED when absent from the DOM
-- **JavaScript execution** — run arbitrary browser JS as a first-class action type
-- **Multi-browser** — Chrome (default), Firefox, and Edge; headless or headed
-- **Test video capture** — optionally record the browser session as an `.mp4` video via ffmpeg; video is retained on test failure and discarded on pass to keep `reports/videos/` lean
-- **Structured results** — every step returns a typed `StepResult` with status, duration, failure phase, and screenshot path
-- **HTML test report** — every `pytest` run auto-generates a timestamped HTML report in `reports/` with per-test workflow step drill-downs (collapsible table, color-coded pass/fail/skip rows) and video links for failed tests
-- **Test coverage reports** — pytest-cov runs automatically on every `pytest` invocation, producing a standard HTML report at `reports/coverage/index.html` and a per-package branch drilldown at `reports/coverage/custom_index.html` (Branch / BrPart columns, per-file links)
-- **Daily-rolling log file** — opt-in file logging via `LOG_FILE_PATH` env var or `log_file_path` YAML key; rotates at midnight, retains 30 days of backups, UTF-8; `logs/` is gitignored; stdout logging is always active regardless
+#### 🗂 Workflow Authoring
+| Feature | Description |
+|---|---|
+| **Zero Python per workflow** | Define tabs, pages, sections, and element interactions entirely in JSON — no code changes to add new scenarios |
+| **Composable with `$ref`** | Split large workflows across multiple files; reference shared tabs, pages, or sections by relative path |
+| **Parameters & conditional branches** | Declare named parameters at the workflow root and include/exclude tabs or pages using `condition` expressions with `==`, `!=`, `&&`, and `\|\|` operators |
+| **Parameter value expansion** | Use `${param_name}` in any element `value` field to inject a workflow parameter at action-dispatch time |
+| **Dynamic placeholders** | Built-in tokens for random names, SIN numbers, dates, and env config values; extensible via a registry |
+
+#### 🌐 Browser Control
+| Feature | Description |
+|---|---|
+| **Multi-browser** | Chrome (default), Firefox, and Edge; headless or headed |
+| **AJAX-aware synchronisation** | Every wait is explicit — `WaitManager` wraps `WebDriverWait` with 19 condition types including jQuery idle, spinner/overlay removal, and attribute/text assertions |
+| **Conditional element skip** | Mark any element `skip_if_not_visible: true` to record it as SKIPPED rather than FAILED when absent from the DOM |
+| **JavaScript execution** | Run arbitrary browser JS as a first-class action type |
+
+#### 📊 Observability & Reporting
+| Feature | Description |
+|---|---|
+| **Structured results** | Every step returns a typed `StepResult` with status, duration, failure phase, and screenshot path |
+| **HTML test report** | Auto-generated timestamped report after every `pytest` run — per-test step drill-downs, color-coded rows, and video links for failed tests |
+| **Test coverage reports** | pytest-cov runs automatically; produces a standard report at `reports/coverage/index.html` and a per-package branch drilldown at `reports/coverage/custom_index.html` |
+| **Test video capture** | Record browser sessions as `.mp4` via ffmpeg — retained on failure, discarded on pass |
+| **Daily-rolling log file** | Opt-in file logging via `LOG_FILE_PATH`; rotates at midnight, retains 30 days; stdout logging always active |
 
 ---
 
