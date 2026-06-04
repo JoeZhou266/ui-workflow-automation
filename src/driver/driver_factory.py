@@ -96,7 +96,7 @@ class DriverFactory:
         options.add_argument("--disable-dev-shm-usage")
         options.add_argument("--disable-gpu")
         options.add_argument("--disable-extensions")
-        options.add_argument("--ingore-certificate-errors")
+        options.add_argument("--ignore-certificate-errors")
         options.add_argument("--ignore-ssl-errors")
         options.add_argument("--allow-insecure-actions")
         options.add_experimental_option("excludeSwitches", ["enable-logging"])
