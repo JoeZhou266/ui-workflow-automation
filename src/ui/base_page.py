@@ -256,9 +256,40 @@ class BasePage:
         elif by == "value":
             sel.select_by_value(value)
         elif by == "index":
-            sel.select_by_index(int(value))
+            if value.strip().lower() == "first_valid":
+                self._select_first_valid_option(sel, name)
+            else:
+                sel.select_by_index(int(value))
         else:
             raise ElementActionError(f"Unknown select_by '{by}'", element_name=name)
+
+    def _select_first_valid_option(self, sel: Select, name: str) -> None:
+        """Select the first <option> whose value attribute is non-empty after stripping.
+
+        "Non-empty" means the value attribute exists and is not blank/whitespace-only
+        (D-03, D-04). Options are scanned in DOM order (the order returned by
+        Select.options). Disabled state and visible text are NOT considered (D-05).
+
+        Args:
+            sel: A Selenium Select wrapping the visible <select> element.
+            name: Element name for error reporting.
+
+        Raises:
+            ElementActionError: If no option has a non-empty value attribute (D-06).
+        """
+        for opt in sel.options:
+            raw = opt.get_attribute("value")
+            if raw is not None and raw.strip():
+                logger.debug(
+                    "select first_valid: found option with value='%s' for '%s'",
+                    raw.strip(), name,
+                )
+                opt.click()
+                return
+        raise ElementActionError(
+            "No option with a non-empty value attribute found",
+            element_name=name,
+        )
 
     def check(self, locator: LocatorDefinition, name: str = "", value: str = "") -> None:
         """Check a checkbox if not already checked.
