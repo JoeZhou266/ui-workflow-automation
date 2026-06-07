@@ -90,7 +90,7 @@ Plans:
 **Goal:** When a `type: select` / `action: select_by_index` element has `value: "first_valid"` (case-insensitive), the framework selects the first `<option>` whose `value` attribute is non-empty (skipping the leading placeholder), and raises `ElementActionError` if none qualify — numeric `select_by_index` unchanged.
 **Requirements**: FV-01..FV-09 (see 20-VALIDATION.md)
 **Depends on:** Phase 19
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
-- [ ] 20-01-PLAN.md — first_valid sentinel for select_by_index (test file + select_dropdown branch/helper)
+- [x] 20-01-PLAN.md — first_valid sentinel for select_by_index (test file + select_dropdown branch/helper)
