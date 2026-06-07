@@ -1044,7 +1044,7 @@ Set `options.skip_if_not_visible: true` on any element to make it conditional. B
 | `click` | Smart click — scroll into view, wait for clickable, retry on intercept |
 | `select_by_text` | Select a `<select>` option by visible text |
 | `select_by_value` | Select a `<select>` option by `value` attribute |
-| `select_by_index` | Select a `<select>` option by zero-based index |
+| `select_by_index` | Select a `<select>` option by zero-based index. Also accepts the sentinel `value: "first_valid"` (case-insensitive) to auto-select the first option whose `value` attribute is non-empty — handy for skipping a leading "Please select…" placeholder. See [First-valid option selection](#first-valid-option-selection). |
 | `check` | Check a checkbox if not already checked. When `locator.by` is `name` and `value` is set, builds a targeted CSS selector. |
 | `uncheck` | Uncheck a checkbox if currently checked. Supports the same name+value disambiguation as `check`. |
 | `select_radio` | Select a radio button if not already selected. When `locator.by` is `name` and `value` is set, builds `input[type="radio"][name="..."][value="..."]`. |
@@ -1059,6 +1059,31 @@ Set `options.skip_if_not_visible: true` on any element to make it conditional. B
 ### Locator Strategies
 
 `id` · `name` · `class_name` · `css_selector` · `xpath` · `link_text` · `partial_link_text` · `tag_name`
+
+### First-valid option selection
+
+When an element uses `action: select_by_index`, the special sentinel `value: "first_valid"` selects the **first `<option>` whose `value` attribute is non-empty** instead of a fixed numeric index. This lets workflow authors skip a leading placeholder option (typically `value=""`, e.g. "Please select…") without knowing its position.
+
+```json
+{
+  "name": "Country",
+  "type": "select",
+  "action": "select_by_index",
+  "locator": { "by": "id", "value": "country" },
+  "value": "first_valid"
+}
+```
+
+Behaviour:
+
+- **Sentinel matching is case-insensitive** — `"first_valid"`, `"First_Valid"`, and `"FIRST_VALID"` all trigger it.
+- **Options are scanned in DOM order**; the first one with a non-empty `value` attribute is selected.
+- **Whitespace-only values count as empty** — the `value` attribute is stripped before checking, so `value="   "` is skipped just like `value=""`.
+- Only the `value` attribute is considered — disabled state and visible text are not part of the rule.
+- The option is selected via a click so `change`/`input` events fire for AJAX-heavy pages.
+- If **no** option qualifies (all values empty/whitespace-only), the step raises `ElementActionError` and is recorded as **FAILED** — there is no silent skip.
+
+Any other (numeric) `value` continues to behave exactly as before: `select_by_index(int(value))`.
 
 ---
 
