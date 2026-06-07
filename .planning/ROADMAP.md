@@ -84,3 +84,13 @@ Plans:
 | 16. Support logical operators (&& / \|\|) in conditional $ref | v1.2 | 1/1 | Complete | 2026-05-31 |
 | 17. Support using parameters defined in workflow in element values as placeholders | v1.2 | 2/2 | Complete | 2026-06-02 |
 | 18. Support setting the log file path, outputting and rolling every day | v1.2 | 1/1 | Complete | 2026-06-02 |
+
+### Phase 20: Support choose first validated option that means value is not empty while element type is select and action is select_by_index
+
+**Goal:** When a `type: select` / `action: select_by_index` element has `value: "first_valid"` (case-insensitive), the framework selects the first `<option>` whose `value` attribute is non-empty (skipping the leading placeholder), and raises `ElementActionError` if none qualify — numeric `select_by_index` unchanged.
+**Requirements**: FV-01..FV-09 (see 20-VALIDATION.md)
+**Depends on:** Phase 19
+**Plans:** 1 plan
+
+Plans:
+- [ ] 20-01-PLAN.md — first_valid sentinel for select_by_index (test file + select_dropdown branch/helper)
