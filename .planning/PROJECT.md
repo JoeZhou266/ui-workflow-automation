@@ -10,9 +10,9 @@ A data-driven Selenium browser automation framework for Python 3.9.13. Workflow 
 
 ## Current State
 
-**v1.2 Advanced Conditional Logic milestone** — Phase 18 complete (2026-06-02). All 18 phases done.
+**v1.2 Advanced Conditional Logic milestone** — Phase 20 complete (2026-06-07).
 
-- 18 phases complete, 394 unit tests passing
+- Phase 20 complete, 402 unit tests passing
 - Full element type coverage: checkbox, radio, select, number, email, JS execution
 - Dynamic placeholder system: SIN, names, last-day-of-month, env config values
 - Workflow composition: `$ref` file references + parameters + conditional `$ref` for branch workflows
@@ -23,6 +23,7 @@ A data-driven Selenium browser automation framework for Python 3.9.13. Workflow 
 - HTML test report: per-test results with step tables and screenshot links saved to `reports/`
 - Coverage reporting: pytest-cov wired + branch coverage enabled + per-file drilldown at `reports/coverage/custom_index.html`
 - Log file output: optional daily-rolling `TimedRotatingFileHandler` via `LOG_FILE_PATH` env var or `log_file_path` YAML key; rotates at midnight, 30-day retention (Phase 18)
+- `first_valid` sentinel: `select_by_index` with `value: "first_valid"` (case-insensitive) selects the first `<option>` with a non-empty `value` attribute, skipping leading placeholders; raises `ElementActionError` if none qualify (Phase 20)
 
 Tech stack: Python 3.9.13, Selenium, Pydantic v2, pytest, PyYAML, python-dotenv.
 
@@ -88,4 +89,4 @@ Tech stack: Python 3.9.13, Selenium, Pydantic v2, pytest, PyYAML, python-dotenv.
 - Environment config (base URLs, credentials) in `configs/env.*.yaml` — never hardcoded
 
 ---
-*Last updated: 2026-06-02 after Phase 18 completion*
+*Last updated: 2026-06-07 after Phase 20 completion*
