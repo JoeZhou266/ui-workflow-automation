@@ -48,10 +48,10 @@ created: 2026-06-09
 
 ## Wave 0 Requirements
 
-- [ ] `tests/unit/test_locator_param_expansion.py` — new test file for partial locator expansion
-- [ ] Existing `tests/unit/` fixtures cover params plumbing
+- [ ] `tests/unit/test_value_resolver.py` — add `TestResolveLocatorParams` (LP-01..LP-05)
+- [ ] `tests/unit/test_locator_resolver.py` — add `TestLocatorResolverWithParams` (LP-06..LP-09, ActionFactory seam)
 
-*Existing pytest infrastructure covers the framework; only new test cases needed.*
+*Existing pytest infrastructure covers the framework; new test classes are added to existing files (no new test file). PLAN.md is the source of truth.*
 
 ---
 
