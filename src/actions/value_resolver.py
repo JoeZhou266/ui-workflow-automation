@@ -15,6 +15,15 @@ from typing import Any, Callable, Dict, Optional
 _PLACEHOLDER_PATTERN = re.compile(r"^\$\{([^}]+)\}$")
 
 # ---------------------------------------------------------------------------
+# Locator param pattern — NON-anchored so partial/embedded tokens match.
+# Distinct from _PLACEHOLDER_PATTERN (D-02): used ONLY for locator.value
+# expansion where the token may appear inside a larger CSS/XPath selector.
+# Example: "//div[@id='${company_code}']" matches; "static_id" does not.
+# ---------------------------------------------------------------------------
+
+_LOCATOR_PARAM_PATTERN = re.compile(r"\$\{([^}]+)\}")
+
+# ---------------------------------------------------------------------------
 # Generator functions (defined before PLACEHOLDER_REGISTRY so they are in scope)
 # ---------------------------------------------------------------------------
 
@@ -205,6 +214,48 @@ def resolve_dynamic_value(value: str, params: dict | None = None) -> str:
         f"Registered keys: {sorted(PLACEHOLDER_REGISTRY)}"
         + (f". Workflow params: {sorted(params)}" if params is not None else "")
     )
+
+
+def resolve_locator_params(value: str, params: dict) -> str:
+    """Expand ``${param}`` tokens embedded in a locator value string.
+
+    Unlike :func:`resolve_dynamic_value` (which uses an *anchored* pattern and
+    only expands full-value tokens), this function uses the *non-anchored*
+    :data:`_LOCATOR_PARAM_PATTERN` to support partial/embedded expansion
+    required for CSS and XPath selectors (D-01, D-02).
+
+    Resolution is from *params* ONLY — ``_ENV_CONFIG`` and
+    ``PLACEHOLDER_REGISTRY`` are never consulted (D-04). An unknown token
+    raises :class:`ValueError` immediately (fail-loud, D-05); it is NOT
+    silently skipped or left unexpanded.
+
+    Args:
+        value: The raw ``locator.value`` string from an
+            :class:`~src.models.workflow_models.LocatorDefinition`. May
+            contain zero or more ``${param_name}`` tokens.
+        params: Mapping of workflow parameter name to its resolved string value.
+            Tokens present in *value* must all appear as keys in *params*.
+
+    Returns:
+        The selector string with all ``${param_name}`` tokens substituted.
+        If *value* contains no tokens, it is returned unchanged.
+
+    Raises:
+        ValueError: If a ``${token}`` in *value* is not found in *params*.
+            The error message names the missing token and lists available
+            param keys (sorted) to assist debugging (T-21-03: names only,
+            not values).
+    """
+    def _replace(match: re.Match) -> str:
+        key = match.group(1)
+        if key not in params:
+            raise ValueError(
+                f"Unknown locator param '${{{key}}}'. "
+                f"Workflow params: {sorted(params)}"
+            )
+        return str(params[key])
+
+    return _LOCATOR_PARAM_PATTERN.sub(_replace, value)
 
 
 # ---------------------------------------------------------------------------
