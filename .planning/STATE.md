@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Advanced Conditional Logic
-status: milestone_complete
-stopped_at: Milestone complete (Phase 20 was final phase)
-last_updated: 2026-06-07T18:40:33.369Z
+status: completed
+stopped_at: Phase 21 context gathered
+last_updated: "2026-06-10T03:15:48.945Z"
 last_activity: 2026-06-07
 progress:
-  total_phases: 19
+  total_phases: 20
   completed_phases: 16
   total_plans: 23
   completed_plans: 26
-  percent: 84
+  percent: 80
 ---
 
 # Project State
@@ -94,6 +94,6 @@ Note: Both items require real browser execution (new window context persistence,
 
 ## Session Continuity
 
-Last session: 2026-06-07T18:17:00.113Z
-Stopped at: Phase 20 context gathered
-Resume file: None
+Last session: 2026-06-10T03:15:48.941Z
+Stopped at: Phase 21 context gathered
+Resume file: .planning/phases/21-support-locator-value-from-workflow-parameters-e-g-locator-v/21-CONTEXT.md
