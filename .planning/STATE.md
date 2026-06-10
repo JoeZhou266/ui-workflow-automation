@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Advanced Conditional Logic
-status: executing
-stopped_at: Phase 21 context gathered
-last_updated: "2026-06-10T04:48:17.882Z"
+status: milestone_complete
+stopped_at: Milestone complete (Phase 21 was final phase)
+last_updated: 2026-06-10T05:00:57.507Z
 last_activity: 2026-06-10 -- Phase 21 execution started
 progress:
   total_phases: 20
   completed_phases: 16
   total_plans: 24
-  completed_plans: 26
+  completed_plans: 27
   percent: 80
 ---
 
@@ -21,15 +21,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-30)
 
 **Core value:** JSON-driven browser automation — zero Python per new workflow
-**Current focus:** Phase 21 — support-locator-value-from-workflow-parameters-e-g-locator-v
+**Current focus:** Milestone complete
 
 ## Current Position
 
-Phase: 21 (support-locator-value-from-workflow-parameters-e-g-locator-v) — EXECUTING
-Plan: 1 of 1
+Phase: 21
+Plan: Not started
 Milestone: v1.2 in progress — all 3 phases complete
-Status: Executing Phase 21
-Last activity: 2026-06-10 -- Phase 21 execution started
+Status: Milestone complete
+Last activity: 2026-06-10
 
 Progress: [██████████] 100%
 
