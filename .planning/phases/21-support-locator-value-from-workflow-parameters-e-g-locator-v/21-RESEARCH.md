@@ -62,18 +62,22 @@ the `params` dict flows from `WorkflowEngine._params` into `ActionFactory`, the
 `LocatorDefinition → (By, selector_string)`, and the error shape to mirror is
 `ValueError("Unknown placeholder '${x}'. ...")` from `resolve_dynamic_value`.
 
-The planner's central decision is **where to apply expansion**: at `LocatorResolver.resolve`
-(gets all call sites including pre_wait/post_wait spinner/overlay locators for free) or
-upstream in `ActionFactory.run` (narrower blast radius, but non-element locators stay raw).
-Research concludes that threading `params` into `LocatorResolver.resolve` as an optional
-parameter is the cleanest seam: zero change to callers that don't need params (they pass
-`None` or omit the arg), and the shared chokepoint gives broad coverage without per-callsite
-wiring.
+The planner's central decision is **where to apply expansion**. Two seams were considered:
+(a) thread `params` into `LocatorResolver.resolve` (broad coverage including non-element
+locators), or (b) resolve `locator.value` upstream in `ActionFactory.run` (narrower blast
+radius, but non-element locators stay raw).
+
+**Seam decision (planning): option (b).** Although option (a) appears cleaner on paper, it
+does NOT reach the ~9 internal `element.locator` reads inside `ElementActions.execute`
+without also threading params through `execute()` and every dispatch branch — a much higher
+blast radius for this codebase. Option (b) resolves the locator upstream, builds a resolved
+`ElementDefinition` copy via `model_copy`, and passes that copy to `is_visible`,
+`_execute_with_retry`, and `execute` — touching only `action_factory.py` and
+`value_resolver.py`. This is the lower-blast-radius solution and is what the plan implements.
 
 **Primary recommendation:** Add `resolve_locator_params(value: str, params: dict) -> str` to
-`value_resolver.py` using `re.sub(r"\$\{([^}]+)\}", repl, value)`. Add an optional
-`params: dict | None = None` argument to `LocatorResolver.resolve`. All other call sites
-remain untouched.
+`value_resolver.py` using `re.sub(r"\$\{([^}]+)\}", repl, value)`. Resolve the locator
+upstream in `ActionFactory` (option b); `LocatorResolver.resolve` is NOT modified.
 
 ---
 
@@ -82,7 +86,7 @@ remain untouched.
 | Capability | Primary Tier | Secondary Tier | Rationale |
 |------------|-------------|----------------|-----------|
 | Locator param expansion (new function) | Actions layer (`src/actions/value_resolver.py`) | — | Lives beside `resolve_dynamic_value`; reuses same params dict shape |
-| Locator resolution seam (wiring) | Locators layer (`src/locators/locator_resolver.py`) | — | Single chokepoint for all `LocatorDefinition → (By, value)` conversions |
+| Locator resolution seam (wiring) | Actions layer (`src/actions/action_factory.py`) | — | Option (b): upstream resolution + `model_copy` so `LocatorResolver.resolve` stays unchanged |
 | Params supply | Workflow layer (`workflow_engine.py` → `ActionFactory`) | — | `self._params` already flows here per Phase 17 |
 | Test coverage | `tests/unit/test_locator_resolver.py` + `test_value_resolver.py` | — | Mirrors existing test file pairing |
 
@@ -90,15 +94,14 @@ remain untouched.
 
 ## Standard Stack
 
-No new external packages required. This phase adds a function and extends an existing method
-signature.
+No new external packages required. This phase adds a function and an `ActionFactory` helper.
 
 ### Existing Libraries in Use
 
 | Library | Version in use | Role |
 |---------|---------------|------|
 | `re` (stdlib) | Python 3.14 builtin | Non-anchored regex scan/replace |
-| `pydantic` | v2 (confirmed in codebase) | `LocatorDefinition` model (unchanged) |
+| `pydantic` | v2 (confirmed in codebase) | `LocatorDefinition` / `ElementDefinition` models (unchanged) |
 | `selenium` | installed | `By` constants (unchanged) |
 
 **Installation:** None required. [VERIFIED: codebase inspection]
@@ -122,28 +125,30 @@ WorkflowEngine._params (dict)
 ActionFactory(params=self._params)          [existing]
         │
         ▼ .run(element)
+        ├─ resolved_locator = self._resolve_locator(element.locator)   [NEW — option b]
+        ├─ target = element.model_copy(update={"locator": resolved_locator})  [NEW]
+        │
         ├─ skip_if_not_visible probe
-        │      └─ BasePage.is_visible(element.locator)
-        │              └─ LocatorResolver.resolve(locator, params=params)  [NEW param]
-        │                      └─ expand_locator_params(value, params)     [NEW fn]
-        │                              └─ re.sub(r"\$\{([^}]+)\}", ...)
+        │      └─ BasePage.is_visible(target.locator)   [resolved copy]
+        │              └─ LocatorResolver.resolve(locator)   [UNCHANGED — no params kwarg]
         │
         ├─ ValueResolver.resolve(element.value)         [UNCHANGED anchored path]
         │
         ├─ WaitManager.wait_for_condition(pre_wait)
-        │      └─ LocatorResolver.resolve(locator)      [params=None → no change]
+        │      └─ LocatorResolver.resolve(locator)      [raw — non-element, deferred]
         │
-        ├─ ElementActions.execute(element, resolved_value)
-        │      └─ BasePage.*( element.locator )
-        │              └─ LocatorResolver.resolve(locator, params=params)  [NEW param]
+        ├─ ElementActions.execute(target, resolved_value)   [resolved copy]
+        │      └─ BasePage.*( target.locator )
+        │              └─ LocatorResolver.resolve(locator)   [UNCHANGED]
         │
         └─ WaitManager.wait_for_condition(post_wait)
-               └─ LocatorResolver.resolve(locator)      [params=None → no change]
+               └─ LocatorResolver.resolve(locator)      [raw — non-element, deferred]
 ```
 
-**Key:** calls to `LocatorResolver.resolve` with `params=None` (or omitting `params`) expand
-nothing, preserving exact existing behavior. Only paths that receive a non-None `params` dict
-will attempt expansion.
+**Key:** `LocatorResolver.resolve` is never modified. The resolved locator is carried inside
+`target` (a `model_copy` of the element), so every internal `target.locator` read sees the
+expanded value. Non-element locators (pre_wait/post_wait/load_criteria/spinner/overlay) flow
+through WaitManager/PageReadiness without params and stay raw — deferred per CONTEXT.md.
 
 ### Recommended Project Structure
 
@@ -152,13 +157,12 @@ No new files or folders. Changes are confined to:
 ```
 src/
 ├── actions/
-│   └── value_resolver.py      # ADD resolve_locator_params() function
-└── locators/
-    └── locator_resolver.py    # ADD params kwarg to LocatorResolver.resolve()
+│   ├── value_resolver.py     # ADD resolve_locator_params() function
+│   └── action_factory.py     # ADD self._params storage + _resolve_locator helper + run() wiring
 tests/
 └── unit/
-    ├── test_value_resolver.py  # ADD TestLocatorParamExpansion class
-    └── test_locator_resolver.py # ADD TestLocatorResolverWithParams class
+    ├── test_value_resolver.py  # ADD TestResolveLocatorParams class
+    └── test_locator_resolver.py # ADD TestLocatorResolverWithParams class (exercises ActionFactory)
 ```
 
 ### Pattern 1: Non-Anchored Partial Expansion Function
@@ -166,7 +170,7 @@ tests/
 **What:** A standalone function in `value_resolver.py` that uses `re.sub` with a non-anchored
 pattern to replace every `${param}` occurrence in an arbitrary string.
 
-**When to use:** Called only from `LocatorResolver.resolve` when `params` is not None.
+**When to use:** Called only from `ActionFactory._resolve_locator` when `params` is non-empty.
 
 ```python
 # Source: [VERIFIED: codebase inspection + Python re stdlib docs] [ASSUMED: function name]
@@ -216,72 +220,18 @@ def resolve_locator_params(value: str, params: dict) -> str:
 
 [VERIFIED: codebase inspection — Python `re.sub` with callable repl tested manually]
 
-### Pattern 2: Extending LocatorResolver.resolve with Optional params
+### Pattern 2: Upstream resolution in ActionFactory (option b — chosen)
 
-**What:** Add `params: dict | None = None` to the static method signature. When `params` is
-not None and the locator value contains any `${…}` token, call `resolve_locator_params`.
+**What:** `ActionFactory` stores `self._params`, adds a `_resolve_locator` helper, and in
+`run()` builds a resolved `ElementDefinition` copy (`target`) via `model_copy`. The copy is
+passed to the visibility probe and to execution. `LocatorResolver.resolve` is unchanged.
 
-**When to use:** All existing callers pass no `params` (backward compatible). Only
-`ActionFactory` and callers that have params access pass a non-None dict.
-
-```python
-# Source: [VERIFIED: codebase inspection — src/locators/locator_resolver.py:27]
-@staticmethod
-def resolve(
-    locator: LocatorDefinition,
-    element_name: str = "",
-    params: dict | None = None,         # NEW optional kwarg
-) -> Tuple[str, str]:
-    by_key = locator.by.lower().strip()
-    selenium_by = _BY_MAP.get(by_key)
-    if selenium_by is None:
-        raise LocatorResolutionError(by=locator.by, element_name=element_name)
-    value = locator.value
-    if params is not None:
-        from src.actions.value_resolver import resolve_locator_params
-        value = resolve_locator_params(value, params)
-    return selenium_by, value
-```
-
-**Blast radius:** Zero — every existing call site passes 0 or 1 positional args; the new
-`params` kwarg defaults to `None` and activates no new code path.
-
-### Pattern 3: Wiring params in ActionFactory
-
-**What:** `ActionFactory` receives `params` at construction (existing). The `run()` method
-needs to thread `params` to the locator resolution calls it owns.
-
-**Current call sites in ActionFactory.run (line 44):**
-
-```python
-# src/actions/action_factory.py:43-44
-if element.options and element.options.get("skip_if_not_visible"):
-    if not self._page.is_visible(element.locator):
-```
-
-`BasePage.is_visible(locator)` calls `LocatorResolver.resolve(locator)` at line 74 of
-`base_page.py`. To thread params, the planner must decide whether to:
-
-**(a) Thread params through BasePage methods** — changes multiple method signatures in
-`base_page.py` and `base_component.py`.
-
-**(b) Resolve locator value upstream in ActionFactory** — mutate or copy the locator before
-passing it to page methods. Side effect: creates a new `LocatorDefinition` with the resolved
-value.
-
-**(c) Store params on ActionFactory and pass them to LocatorResolver.resolve at call sites
-that ActionFactory controls** — requires changing the `is_visible()` call and the
-`execute()` dispatch.
-
-Research recommendation: **(b) resolve upstream in ActionFactory** is the lowest blast
-radius. Before calling `self._page.is_visible(element.locator)` and before calling
-`self._executor.execute(element, resolved_value)`, produce a resolved locator:
-
-```python
-# In ActionFactory.run(), before skip_if_not_visible check:
-resolved_locator = self._resolve_locator(element.locator)
-# Then use resolved_locator everywhere element.locator is referenced in this method
-```
+**Why not a params kwarg on LocatorResolver.resolve (option a):** `ElementActions.execute`
+reads `element.locator` internally at ~9 dispatch branches and takes no separate locator
+argument. A `params` kwarg on `LocatorResolver.resolve` would expand the visibility probe but
+NOT those internal reads unless params were also threaded through `execute()` and every
+branch — higher blast radius. Carrying the resolved value inside `target` covers all reads
+with no change to `ElementActions` or `LocatorResolver`.
 
 ```python
 def _resolve_locator(self, locator: LocatorDefinition) -> LocatorDefinition:
@@ -294,8 +244,17 @@ def _resolve_locator(self, locator: LocatorDefinition) -> LocatorDefinition:
     return LocatorDefinition(by=locator.by, value=resolved_value)
 ```
 
-This keeps all BasePage/BaseComponent signatures unchanged. The resolved
-`LocatorDefinition` is passed where `element.locator` is currently passed.
+```python
+# In ActionFactory.run(), at the TOP (before the skip_if_not_visible probe):
+resolved_locator = self._resolve_locator(element.locator)
+target = (
+    element
+    if resolved_locator is element.locator
+    else element.model_copy(update={"locator": resolved_locator})
+)
+# Use target.locator for the is_visible probe; pass target to
+# _execute_with_retry / self._executor.execute.
+```
 
 **Implication for non-element locators:** With option (b), pre_wait/post_wait locators
 and load_criteria locators are NOT automatically expanded (they flow through WaitManager →
@@ -308,12 +267,13 @@ LocatorResolver without params). This is acceptable per CONTEXT.md Deferred sect
 - **Modifying `resolve_dynamic_value` to support partial expansion:** The existing function
   has deliberate anchored semantics. Changing it would break the VP-09 test
   ("partial token not expanded") and violate D-03. [VERIFIED: test_value_resolver.py:353]
-- **Using `LocatorDefinition` validator during resolution:** `LocatorDefinition.by` has a
-  validator that rejects unknown strategies. When creating a resolved copy, `by` is
-  unchanged, so no validator issue occurs.
+- **Adding a `params` kwarg to `LocatorResolver.resolve`:** Option (b) was chosen — see
+  Pattern 2. A params kwarg would not reach `ElementActions.execute`'s internal locator reads.
+- **Resolving into a local variable only:** `ElementActions.execute` reads `element.locator`
+  internally; resolve into a `model_copy` (`target`) and pass that, not a local.
 - **Mutating `element.locator` in-place:** `LocatorDefinition` is a Pydantic model;
   mutating fields directly is unreliable in Pydantic v2 without `model_config =
-  ConfigDict(frozen=False)`. Always create a new instance.
+  ConfigDict(frozen=False)`. Always create a new instance / use `model_copy`.
 
 ---
 
@@ -323,7 +283,7 @@ LocatorResolver without params). This is acceptable per CONTEXT.md Deferred sect
 |---------|-------------|-------------|-----|
 | Regex for token scan | Custom state-machine parser | `re.compile(r"\$\{([^}]+)\}")` | Handles all edge cases, well-tested |
 | Partial string replacement | String split/join | `re.sub(pattern, callable, string)` | Callable repl raises `ValueError` inside sub correctly |
-| LocatorDefinition copy | Dict manipulation | `LocatorDefinition(by=..., value=...)` | Pydantic model validates `by` field |
+| Element copy with new locator | Dict manipulation | `element.model_copy(update={"locator": ...})` | Pydantic v2 preserves all other fields, re-validates `by` safely |
 
 **Key insight:** Python's `re.sub` with a callable replacement function propagates exceptions
 raised inside the callable — if the callable raises `ValueError` for an unknown token,
@@ -340,7 +300,7 @@ behavior for D-05. [VERIFIED: Python stdlib behavior]
 **Why it happens:** Some regex engines silently skip failed substitutions.
 **How to avoid:** Python's `re.sub` propagates any exception raised in the callable. A
 `ValueError` for an unknown `${x}` token will surface immediately and bubble up through
-`LocatorResolver.resolve` → `ActionFactory._resolve_locator` → `ActionFactory.run` → the
+`resolve_locator_params` → `ActionFactory._resolve_locator` → `ActionFactory.run` → the
 `except Exception` catch in `WorkflowEngine._run_element`, which records the step as FAILED.
 **Warning signs:** If tests show a partial substitution occurred (some tokens expanded, later
 one silently skipped), the repl function is not raising as expected.
@@ -373,27 +333,27 @@ strategies, so the copy constructor succeeds.
 ### Pitfall 4: params=None vs params={} distinction
 
 **What goes wrong:** Treating `params=None` as "no params" and `params={}` as "has params but
-empty" inconsistently. If a locator contains `${x}` and `params={}`, the function must still
-raise `ValueError` (D-05) — not silently skip expansion.
+empty" inconsistently. If a locator contains `${x}` and `params={}`, expansion must still
+raise `ValueError` (D-05) — not silently skip.
 **Why it happens:** `if params is not None` vs `if params` differ when params is `{}`.
-**How to avoid:** In `LocatorResolver.resolve`, gate on `params is not None` (not `if
-params`). In `_resolve_locator` in ActionFactory, gate on `if not self._params` (which
-treats `{}` as "no expansion needed" — this is safe because an empty params dict with a
-`${x}` locator will still call `resolve_locator_params`, which will raise `ValueError`).
-Actually: use `if params is not None` consistently at the resolver level so the error fires.
+**How to avoid:** Under option (b), `ActionFactory._resolve_locator` gates on
+`if not self._params` (treating `{}` as "no expansion needed" — safe, because params are
+built once at engine init and an empty params dict means no `${param}` definitions exist).
+Inside `resolve_locator_params` itself, the `key not in params` check fires for any token,
+so a `${x}` against a non-empty params dict that lacks `x` raises correctly.
 [VERIFIED: value_resolver.py:201 — `if params is not None and key in params` pattern]
 
 ### Pitfall 5: The skip_if_not_visible probe uses element.locator before value resolution
 
 **What goes wrong:** ActionFactory.run() checks skip_if_not_visible at line 43 using
 `element.locator` before any resolution. If the locator contains `${x}`, `is_visible` fails
-with an unrecognized selector in the browser (or a `ValueError` from the new code if
-threaded). The element is incorrectly treated as not-visible and skipped.
+with an unrecognized selector in the browser. The element is incorrectly treated as
+not-visible and skipped.
 **Why it happens:** The skip check happens before the existing `resolved_value` computation
 at line 50.
-**How to avoid:** Compute `resolved_locator = self._resolve_locator(element.locator)` at the
-TOP of `ActionFactory.run()`, before the skip_if_not_visible check. Use `resolved_locator`
-for the `is_visible` call and for all subsequent `element.locator` references.
+**How to avoid:** Compute `resolved_locator = self._resolve_locator(element.locator)` and
+build `target` at the TOP of `ActionFactory.run()`, before the skip_if_not_visible check.
+Use `target.locator` for the `is_visible` call and `target` for all subsequent execution.
 [VERIFIED: action_factory.py:43-50]
 
 ---
@@ -417,28 +377,23 @@ unknown token correctly surfaces the error immediately.
 
 ### Q2: Resolver seam — recommended option
 
-**Recommendation: Option (b) — resolve `locator.value` upstream in `ActionFactory`.**
+**Decision: Option (b) — resolve `locator.value` upstream in `ActionFactory`.**
 
 Rationale:
 
-| Option | Call Sites Changed | Non-element locators auto-expand | Complexity |
-|--------|--------------------|----------------------------------|-----------|
-| (a) Thread params into LocatorResolver | 1 static method signature + all callers with params | Yes (all) | Medium — must thread params through BasePage, WaitManager, PageReadiness |
-| (b) Resolve upstream in ActionFactory | ActionFactory only | No (pre_wait/post_wait, load_criteria stay raw) | Low — 1 private method on ActionFactory |
-| (c) Another seam (e.g. at element model level) | WorkflowEngine | Depends | Would require changing how element.locator is accessed everywhere |
+| Option | Call Sites Changed | Non-element locators auto-expand | Reaches ElementActions internal reads | Complexity |
+|--------|--------------------|----------------------------------|----------------------------------------|-----------|
+| (a) Thread params into LocatorResolver | 1 static method signature + every caller with params | Yes (all) | NO — execute() reads element.locator internally; would also need params threaded through execute() and every branch | High |
+| (b) Resolve upstream in ActionFactory + model_copy | ActionFactory only | No (pre_wait/post_wait, load_criteria stay raw) | YES — resolved value carried inside `target` reaches every internal read | Low |
+| (c) Another seam (e.g. at element model level) | WorkflowEngine | Depends | Depends | Would require changing how element.locator is accessed everywhere |
 
-Option (b) wins on blast radius: only `ActionFactory` changes. The deferred non-element
-coverage is acceptable per CONTEXT.md. If coverage is later needed, adding `params` to
-`LocatorResolver.resolve` is still possible as a follow-up (the optional kwarg approach
-in Pattern 2 above).
-
-**Alternative note:** Option (a) — threading params directly into `LocatorResolver.resolve`
-as an optional kwarg — is also clean and would give free coverage for non-element locators.
-The planner may choose (a) if broad coverage is valued. The signature change is backward
-compatible (`params=None` default). The complication is that WaitManager.wait_for_condition
-and PageReadinessChecker call `LocatorResolver.resolve` and would need to receive `params`
-too — they don't currently have access to `params`, so this requires threaded params through
-WaitManager or a context object.
+Option (b) wins decisively: only `ActionFactory` and `value_resolver.py` change, and the
+resolved locator reaches every consumer (probe + all ~9 `ElementActions.execute` branches)
+via the `model_copy` `target`. The earlier note that option (a) "would give free coverage for
+non-element locators" is true but misleading — it would NOT cover the element-action path
+without far more threading. The deferred non-element coverage is acceptable per CONTEXT.md.
+If non-element coverage is later needed, adding `params` to `LocatorResolver.resolve` remains
+a possible follow-up phase.
 
 ### Q3: Params plumbing path (verified from source)
 
@@ -482,9 +437,9 @@ Call sites of `LocatorResolver.resolve` in the codebase (verified by grep):
 | `page_readiness.py` | 68,76 | spinner_locator, overlay_locator | No |
 
 **Conclusion:** No existing `LocatorResolver.resolve` call site has access to `params` except
-through ActionFactory. If option (b) is chosen, the resolved locator is passed to BasePage
-methods which call `LocatorResolver.resolve` again on the already-resolved value — which is
-fine because the resolved value has no `${…}` tokens left.
+through ActionFactory. With option (b), the resolved locator (inside `target`) is passed to
+BasePage methods which call `LocatorResolver.resolve` again on the already-resolved value —
+which is fine because the resolved value has no `${…}` tokens left.
 
 With option (b), non-element locators (pre_wait/post_wait `locator`, `spinner_locator`,
 `overlay_locator`, `load_criteria.locator`) are NOT expanded. These are all deferred per
@@ -528,7 +483,8 @@ The 402 unit tests (confirmed by `pytest --collect-only`) cover:
   which asserts that `"prefix_${name}"` is returned unchanged by `resolve_dynamic_value`.
   This test MUST continue to pass.
 - `tests/unit/test_locator_resolver.py` — 8 tests asserting current static behavior.
-  All must pass. The new tests are additions, not modifications.
+  All must pass. `LocatorResolver.resolve` is unchanged under option (b); the new tests are
+  additions that exercise ActionFactory, not modifications to LocatorResolver behavior.
 
 **The anchored `_PLACEHOLDER_PATTERN` and `resolve_dynamic_value` must not be touched.**
 [VERIFIED: test_value_resolver.py:353, value_resolver.py:15]
@@ -547,9 +503,10 @@ The 402 unit tests (confirmed by `pytest --collect-only`) cover:
 - Uses `pytest.raises(ValueError, match="...")` for error assertions
 - No fixtures needed for pure functions
 
-**New test class should be:** `class TestLocatorParamExpansion` in
-`tests/unit/test_locator_resolver.py` plus a matching `class TestResolveLocatorParams` in
-`tests/unit/test_value_resolver.py` for the standalone function.
+**New test classes:** `class TestResolveLocatorParams` in `tests/unit/test_value_resolver.py`
+for the standalone function, and `class TestLocatorResolverWithParams` in
+`tests/unit/test_locator_resolver.py` exercising the option-(b) seam through `ActionFactory`
+(using `MagicMock` for page/wait_manager — no browser).
 
 ---
 
@@ -614,7 +571,7 @@ class LocatorDefinition(BaseModel):
         return v
 ```
 
-### Verified: LocatorResolver.resolve current signature (to extend)
+### Verified: LocatorResolver.resolve current signature (UNCHANGED under option b)
 
 ```python
 # Source: src/locators/locator_resolver.py:27-44
@@ -624,7 +581,7 @@ def resolve(locator: LocatorDefinition, element_name: str = "") -> Tuple[str, st
     selenium_by = _BY_MAP.get(by_key)
     if selenium_by is None:
         raise LocatorResolutionError(by=locator.by, element_name=element_name)
-    return selenium_by, locator.value   # <-- returns raw value today
+    return selenium_by, locator.value   # <-- returns the (already-resolved) value
 ```
 
 ---
@@ -661,12 +618,12 @@ def resolve(locator: LocatorDefinition, element_name: str = "") -> Tuple[str, st
 | LP-02 | `resolve_locator_params("#row-${id}", {"id": "42"})` returns `#row-42` | unit | `pytest tests/unit/test_value_resolver.py::TestResolveLocatorParams -x` | Wave 0 |
 | LP-03 | Multiple tokens in one string all expanded | unit | `pytest tests/unit/test_value_resolver.py::TestResolveLocatorParams -x` | Wave 0 |
 | LP-04 | No token in string — returned unchanged | unit | `pytest tests/unit/test_value_resolver.py::TestResolveLocatorParams -x` | Wave 0 |
-| LP-05 | Unknown `${x}` raises `ValueError` naming the param | unit | `pytest tests/unit/test_value_resolver.py::TestResolveLocatorParams::test_unknown_token_raises -x` | Wave 0 |
-| LP-06 | `LocatorResolver.resolve(locator, params={"x":"v"})` expands token | unit | `pytest tests/unit/test_locator_resolver.py::TestLocatorResolverWithParams -x` | Wave 0 |
+| LP-05 | Unknown `${x}` raises `ValueError` naming the param | unit | `pytest tests/unit/test_value_resolver.py::TestResolveLocatorParams -x` | Wave 0 |
+| LP-06 | `ActionFactory._resolve_locator` expands token from params | unit | `pytest tests/unit/test_locator_resolver.py::TestLocatorResolverWithParams -x` | Wave 0 |
 | LP-07 | `LocatorResolver.resolve(locator)` with no params — unchanged (regression) | unit | `pytest tests/unit/test_locator_resolver.py -x` | Exists |
-| LP-08 | `ActionFactory.run` with parameterized locator resolves before probe | unit | `pytest tests/unit/test_value_resolver.py::TestParamExpansion::test_action_factory_integration -x` | Exists (extend) |
-| LP-09 | Element value anchored behavior still intact (`prefix_${name}` unchanged) | unit | `pytest tests/unit/test_value_resolver.py::TestParamExpansion::test_partial_token_not_expanded -x` | Exists |
-| LP-10 | WorkflowEngine passes params to ActionFactory (existing chain verified) | unit | `pytest tests/unit/test_workflow_params.py -x` | Exists |
+| LP-08 | `_resolve_locator` unknown token raises `ValueError` (fail-loud) | unit | `pytest tests/unit/test_locator_resolver.py::TestLocatorResolverWithParams -x` | Wave 0 |
+| LP-09 | `ActionFactory.run` threads resolved ElementDefinition copy to executor | unit | `pytest tests/unit/test_locator_resolver.py::TestLocatorResolverWithParams -x` | Wave 0 |
+| (regression) | Element value anchored behavior still intact (`prefix_${name}` unchanged) | unit | `pytest tests/unit/test_value_resolver.py::TestParamExpansion::test_partial_token_not_expanded -x` | Exists |
 
 ### Sampling Rate
 
@@ -677,7 +634,7 @@ def resolve(locator: LocatorDefinition, element_name: str = "") -> Tuple[str, st
 ### Wave 0 Gaps
 
 - [ ] `tests/unit/test_value_resolver.py` — ADD `class TestResolveLocatorParams` with LP-01..LP-05
-- [ ] `tests/unit/test_locator_resolver.py` — ADD `class TestLocatorResolverWithParams` with LP-06..LP-07
+- [ ] `tests/unit/test_locator_resolver.py` — ADD `class TestLocatorResolverWithParams` with LP-06..LP-09 (via ActionFactory)
 
 *(Existing test infrastructure fully covers the runner; only new test classes needed)*
 
@@ -711,32 +668,37 @@ def resolve(locator: LocatorDefinition, element_name: str = "") -> Tuple[str, st
 | # | Claim | Section | Risk if Wrong |
 |---|-------|---------|---------------|
 | A1 | The recommended function name `resolve_locator_params` | Patterns | Name only — planner may choose any name; no behavior impact |
-| A2 | The recommended helper `ActionFactory._resolve_locator` | Patterns | Planner may choose a different wiring strategy (option a or c); seam analysis still valid |
+| A2 | The recommended helper `ActionFactory._resolve_locator` | Patterns | Name only — option (b) seam is fixed by planning |
 | A3 | New `TestResolveLocatorParams` test class name | Validation Architecture | Name only |
 
 **All behavioral claims are [VERIFIED: codebase inspection] unless tagged [ASSUMED].**
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Non-element locator expansion (deferred):**
    - What we know: pre_wait/post_wait conditions, load_criteria, spinner_locator, and
      overlay_locator all go through `LocatorResolver.resolve` in WaitManager and
      PageReadinessChecker, neither of which has params access.
-   - What's unclear: Whether a future phase should thread params through WaitManager or use a
+   - What was unclear: Whether a future phase should thread params through WaitManager or use a
      different approach.
-   - Recommendation: Document as deferred. If option (a) is chosen for this phase (params
-     kwarg on LocatorResolver.resolve), then WaitManager would need a matching change to pass
-     params — defer that to a separate phase.
+   - RESOLVED: Deferred per CONTEXT.md (Deferred Ideas — non-element locator expansion is out
+     of scope for Phase 21). Because Phase 21 uses option (b) (upstream resolution in
+     ActionFactory), non-element locators are NOT expanded and that is the accepted tradeoff,
+     documented in the plan's `<seam_decision>` and to be recorded in the SUMMARY. If coverage
+     is needed later, add `params` to `LocatorResolver.resolve` plus a WaitManager change in a
+     separate phase.
 
 2. **ActionFactory self._params storage:**
    - What we know: `ActionFactory.__init__` passes `params` only to `ValueResolver`, does not
      store it as `self._params`. This must change.
-   - What's unclear: Whether storing `params or {}` is preferable to `params` (keeping None
+   - What was unclear: Whether storing `params or {}` is preferable to `params` (keeping None
      distinct from empty dict).
-   - Recommendation: Store `self._params: dict = params or {}` for consistency with
-     `ValueResolver.__init__` (line 228 of value_resolver.py: `self._params: dict = params or {}`).
+   - RESOLVED: Store `self._params = params or {}` (consistent with `ValueResolver.__init__`,
+     value_resolver.py:228). `_resolve_locator` gates on `if not self._params`, so a `None` or
+     `{}` params dict short-circuits to returning the locator unchanged; an unknown token under
+     a non-empty params dict still raises via `resolve_locator_params` (D-05 preserved).
 
 ---
 
@@ -768,7 +730,7 @@ def resolve(locator: LocatorDefinition, element_name: str = "") -> Tuple[str, st
 
 **Confidence breakdown:**
 - New function (`resolve_locator_params`): HIGH — direct code and regex verification
-- Seam analysis: HIGH — all call sites traced from source
+- Seam analysis: HIGH — all call sites traced from source; option (b) selected during planning
 - Params plumbing: HIGH — traced from WorkflowEngine through ActionFactory line by line
 - Pitfall list: HIGH — each pitfall references specific verified line numbers
 - Test patterns: HIGH — existing test files read and compared
