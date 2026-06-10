@@ -97,10 +97,10 @@ Plans:
 
 ### Phase 21: Support locator value from workflow parameters (e.g. locator value "${company_code}" resolved from params)
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** A locator's `value` may embed `${param}` tokens (full-value or inside an XPath/CSS string, e.g. `//div[@id='${company_code}']`, `#row-${id}`) that are resolved from the workflow `params` block via a non-anchored expansion path; unknown tokens fail loud. Element-value anchored expansion is unchanged.
+**Requirements**: LP-01..LP-09 (see 21-VALIDATION.md / 21-RESEARCH.md)
 **Depends on:** Phase 20
-**Plans:** 0 plans
+**Plans:** 1 plan
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 21 to break down)
+- [ ] 21-01-PLAN.md — locator ${param} partial expansion (resolve_locator_params + ActionFactory wiring + unit tests)
