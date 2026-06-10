@@ -83,6 +83,7 @@ Note: Both items require real browser execution (new window context persistence,
 - Phase 17 added: Support using parameters defined in workflow in element values as placeholders
 - Phase 18 added: Support setting the log file path, outputting and rolling every day
 - Phase 20 added: Support choose first validated option that means value is not empty while element type is select and action is select_by_index
+- Phase 21 added: Support locator value from workflow parameters (e.g. locator value "${company_code}" resolved from params)
 
 ### Phase 6 Decisions
 

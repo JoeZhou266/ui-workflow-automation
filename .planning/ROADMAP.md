@@ -94,3 +94,13 @@ Plans:
 
 Plans:
 - [x] 20-01-PLAN.md — first_valid sentinel for select_by_index (test file + select_dropdown branch/helper)
+
+### Phase 21: Support locator value from workflow parameters (e.g. locator value "${company_code}" resolved from params)
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 20
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 21 to break down)
