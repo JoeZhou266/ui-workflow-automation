@@ -16,6 +16,7 @@ from src.actions.value_resolver import (
     generate_last_name,
     generate_sin_number,
     resolve_dynamic_value,
+    resolve_locator_params,
 )
 
 
@@ -385,3 +386,79 @@ class TestParamExpansion:
             factory.run(element)
 
         assert resolved_values == ["OPEN"]
+
+
+# ---------------------------------------------------------------------------
+# Phase 21 — LP-01..LP-05: resolve_locator_params — non-anchored locator expansion
+# ---------------------------------------------------------------------------
+
+
+class TestResolveLocatorParams:
+    """LP-01..LP-05: Partial/embedded ${param} expansion in locator value strings."""
+
+    # LP-01: embedded XPath token
+    def test_embedded_xpath_token(self):
+        """LP-01: XPath selector with embedded ${company_code} expands correctly."""
+        result = resolve_locator_params("//div[@id='${company_code}']", {"company_code": "ACME"})
+        assert result == "//div[@id='ACME']"
+
+    # LP-01 (CSS variant): embedded CSS token
+    def test_embedded_css_token(self):
+        """LP-01: CSS selector with embedded ${id} expands correctly."""
+        result = resolve_locator_params("#row-${id}", {"id": "42"})
+        assert result == "#row-42"
+
+    # LP-02: multiple tokens in one string
+    def test_multiple_tokens_all_expanded(self):
+        """LP-02: Multiple ${param} tokens in one selector are all expanded."""
+        result = resolve_locator_params(
+            "//div[@id='${a}']/span[@class='${b}']",
+            {"a": "header", "b": "title"},
+        )
+        assert result == "//div[@id='header']/span[@class='title']"
+
+    # LP-02 (adjacent text): token surrounded by class text
+    def test_adjacent_text_token_expanded(self):
+        """LP-02: Token embedded between plain text characters expands correctly."""
+        result = resolve_locator_params(".class_${type}_box", {"type": "admin"})
+        assert result == ".class_admin_box"
+
+    # LP-03: full-value token (same as element-value, but via locator path)
+    def test_full_value_token_expanded(self):
+        """LP-03: Full-value ${company_code} expands from params (like element-value, but via locator path)."""
+        result = resolve_locator_params("${company_code}", {"company_code": "ACME"})
+        assert result == "ACME"
+
+    # LP-03: no-token string returned unchanged
+    def test_no_token_unchanged(self):
+        """LP-03: A selector with no ${...} tokens is returned unchanged."""
+        result = resolve_locator_params("//div[@class='static']", {})
+        assert result == "//div[@class='static']"
+
+    # LP-04: XPath with quotes context preserved
+    def test_xpath_quote_context_preserved(self):
+        """LP-04: Resolved value containing single-quotes inside XPath string is preserved verbatim."""
+        result = resolve_locator_params("//div[@title='${label}']", {"label": "O'Brien"})
+        assert result == "//div[@title='O'Brien']"
+
+    # LP-05: unknown token raises ValueError — full-value unknown
+    def test_unknown_token_full_value_raises(self):
+        """LP-05: Unknown ${missing} with empty params raises ValueError naming the param."""
+        with pytest.raises(ValueError, match="Unknown locator param"):
+            resolve_locator_params("${missing}", {})
+
+    # LP-05: unknown token raises ValueError — embedded unknown
+    def test_unknown_token_embedded_raises(self):
+        """LP-05: Unknown embedded ${type} with empty params raises ValueError (no silent skip)."""
+        with pytest.raises(ValueError, match="Unknown locator param"):
+            resolve_locator_params(".class_${type}_box", {})
+
+    # LP-05: error message contains "Workflow params:" and lists available keys
+    def test_error_message_lists_available_keys(self):
+        """LP-05: ValueError message includes 'Workflow params:' and sorted available keys."""
+        with pytest.raises(ValueError) as exc_info:
+            resolve_locator_params("${missing}", {"a": "1", "b": "2"})
+        msg = str(exc_info.value)
+        assert "Workflow params:" in msg
+        assert "a" in msg
+        assert "b" in msg

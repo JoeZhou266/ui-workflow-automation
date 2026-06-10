@@ -2,11 +2,13 @@
 from __future__ import annotations
 
 import pytest
+from unittest.mock import MagicMock, patch
 from selenium.webdriver.common.by import By
 
 from src.core.exceptions import LocatorResolutionError
 from src.locators.locator_resolver import LocatorResolver
-from src.models.workflow_models import LocatorDefinition
+from src.models.workflow_models import ElementDefinition, LocatorDefinition
+from src.core.enums import ActionType, ElementType
 
 
 class TestLocatorResolver:
@@ -66,3 +68,103 @@ class TestLocatorResolver:
         by, val = LocatorResolver.resolve(locator)
         assert by == By.XPATH
         assert val == "//div[@class='foo']//input"
+
+
+# ---------------------------------------------------------------------------
+# Phase 21 — LP-06..LP-09: ActionFactory integration with locator param resolution
+# ---------------------------------------------------------------------------
+
+
+class TestLocatorResolverWithParams:
+    """LP-06..LP-09: ActionFactory._resolve_locator integration — seam is option (b).
+
+    Tests the FULL wiring through ActionFactory._resolve_locator (upstream seam).
+    Per the seam decision in 21-01-PLAN.md, option (b) is used: resolve in ActionFactory,
+    NOT via a params kwarg on LocatorResolver.resolve (that signature does not exist here).
+    """
+
+    def _make_element(self, locator_value: str, by: str = "id") -> ElementDefinition:
+        """Build a minimal ElementDefinition with the given locator value."""
+        return ElementDefinition(
+            name="test_element",
+            type=ElementType.BUTTON,
+            action=ActionType.CLICK,
+            locator=LocatorDefinition(by=by, value=locator_value),
+        )
+
+    # LP-06: _resolve_locator returns resolved LocatorDefinition with expanded value
+    def test_resolve_locator_expands_full_token(self):
+        """LP-06: ActionFactory._resolve_locator expands full-value ${company_code} from params."""
+        from src.actions.action_factory import ActionFactory
+
+        mock_page = MagicMock()
+        mock_wm = MagicMock()
+        factory = ActionFactory(mock_page, mock_wm, params={"company_code": "ACME"})
+
+        locator = LocatorDefinition(by="id", value="${company_code}")
+        resolved = factory._resolve_locator(locator)
+        assert resolved.value == "ACME"
+        assert resolved.by == "id"
+
+    # LP-07: _resolve_locator with no params returns the SAME object (identity)
+    def test_resolve_locator_no_params_returns_identity(self):
+        """LP-07: With empty params dict, _resolve_locator returns the same locator object."""
+        from src.actions.action_factory import ActionFactory
+
+        mock_page = MagicMock()
+        mock_wm = MagicMock()
+        factory = ActionFactory(mock_page, mock_wm, params={})
+
+        locator = LocatorDefinition(by="id", value="static_id")
+        result = factory._resolve_locator(locator)
+        # No params → must return the same object (zero allocation)
+        assert result is locator
+
+    # LP-07 (no tokens): selector without tokens, params present → same object
+    def test_resolve_locator_no_token_returns_identity(self):
+        """LP-07: Selector without ${...} tokens returns the same locator object even with params."""
+        from src.actions.action_factory import ActionFactory
+
+        mock_page = MagicMock()
+        mock_wm = MagicMock()
+        factory = ActionFactory(mock_page, mock_wm, params={"company_code": "ACME"})
+
+        locator = LocatorDefinition(by="id", value="static_id")
+        result = factory._resolve_locator(locator)
+        assert result is locator
+
+    # LP-08: unknown token raises ValueError
+    def test_resolve_locator_unknown_token_raises(self):
+        """LP-08: Unknown ${token} in locator raises ValueError matching 'Unknown locator param'."""
+        from src.actions.action_factory import ActionFactory
+
+        mock_page = MagicMock()
+        mock_wm = MagicMock()
+        factory = ActionFactory(mock_page, mock_wm, params={})
+
+        locator = LocatorDefinition(by="id", value="${missing_param}")
+        with pytest.raises(ValueError, match="Unknown locator param"):
+            factory._resolve_locator(locator)
+
+    # LP-09: run()-level test — element passed to execute carries resolved locator value
+    def test_run_passes_resolved_element_to_execute(self):
+        """LP-09: factory.run() ensures the element passed to execute has the resolved locator value."""
+        from src.actions.action_factory import ActionFactory
+
+        mock_page = MagicMock()
+        mock_page.is_visible.return_value = True
+        mock_wm = MagicMock()
+        factory = ActionFactory(mock_page, mock_wm, params={"company_code": "ACME"})
+
+        element = self._make_element("${company_code}", by="id")
+
+        executed_elements = []
+
+        def capture_execute(elem, val):
+            executed_elements.append(elem)
+
+        with patch.object(factory._executor, "execute", side_effect=capture_execute):
+            factory.run(element)
+
+        assert len(executed_elements) == 1
+        assert executed_elements[0].locator.value == "ACME"
