@@ -100,7 +100,7 @@ Plans:
 **Goal:** A locator's `value` may embed `${param}` tokens (full-value or inside an XPath/CSS string, e.g. `//div[@id='${company_code}']`, `#row-${id}`) that are resolved from the workflow `params` block via a non-anchored expansion path; unknown tokens fail loud. Element-value anchored expansion is unchanged.
 **Requirements**: LP-01..LP-09 (see 21-VALIDATION.md / 21-RESEARCH.md)
 **Depends on:** Phase 20
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
-- [ ] 21-01-PLAN.md — locator ${param} partial expansion (resolve_locator_params + ActionFactory wiring + unit tests)
+- [x] 21-01-PLAN.md — locator ${param} partial expansion (resolve_locator_params + ActionFactory wiring + unit tests)

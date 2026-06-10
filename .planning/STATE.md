@@ -4,8 +4,8 @@ milestone: v1.2
 milestone_name: Advanced Conditional Logic
 status: executing
 stopped_at: Phase 21 context gathered
-last_updated: "2026-06-10T04:46:36.363Z"
-last_activity: 2026-06-10 -- Phase 21 planning complete
+last_updated: "2026-06-10T04:48:17.882Z"
+last_activity: 2026-06-10 -- Phase 21 execution started
 progress:
   total_phases: 20
   completed_phases: 16
@@ -21,15 +21,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-30)
 
 **Core value:** JSON-driven browser automation — zero Python per new workflow
-**Current focus:** Milestone complete
+**Current focus:** Phase 21 — support-locator-value-from-workflow-parameters-e-g-locator-v
 
 ## Current Position
 
-Phase: 20
-Plan: Not started
+Phase: 21 (support-locator-value-from-workflow-parameters-e-g-locator-v) — EXECUTING
+Plan: 1 of 1
 Milestone: v1.2 in progress — all 3 phases complete
-Status: Ready to execute
-Last activity: 2026-06-10 -- Phase 21 planning complete
+Status: Executing Phase 21
+Last activity: 2026-06-10 -- Phase 21 execution started
 
 Progress: [██████████] 100%
 
