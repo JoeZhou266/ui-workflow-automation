@@ -233,3 +233,47 @@ class TestResolveRefs:
         data = {"$ref": "a.json"}
         with pytest.raises(ValueError, match="Circular"):
             resolve_refs(data, tmp_path)
+
+
+# ---------------------------------------------------------------------------
+# TestReservedParamName — Wave 0 RED tests for Phase 22 reserved `index` param
+# ---------------------------------------------------------------------------
+
+class TestReservedParamName:
+    """Tests that a workflow parameter named 'index' is rejected at load time.
+
+    The 'index' name is reserved for the loop variable introduced by Phase 22's
+    index_range expansion. Both WorkflowLoader.load and WorkflowLoader.load_raw
+    must raise WorkflowValidationError with a message matching 'reserved'.
+    """
+
+    def _write_json(self, tmp_path: Path, data: dict) -> Path:
+        f = tmp_path / "workflow.json"
+        f.write_text(json.dumps(data), encoding="utf-8")
+        return f
+
+    def _workflow_with_param(self, name: str, value: str) -> dict:
+        return {
+            "workflow_name": "Test WF",
+            "start_url": "https://example.com",
+            "parameters": [{"name": name, "value": value}],
+            "tabs": [],
+        }
+
+    def test_index_param_raises(self, tmp_path):
+        """Reserved: workflow param named 'index' raises WorkflowValidationError via load."""
+        path = self._write_json(tmp_path, self._workflow_with_param("index", "0"))
+        with pytest.raises(WorkflowValidationError, match="reserved"):
+            WorkflowLoader.load(path)
+
+    def test_index_param_raises_in_load_raw(self, tmp_path):
+        """Reserved: workflow param named 'index' raises WorkflowValidationError via load_raw."""
+        path = self._write_json(tmp_path, self._workflow_with_param("index", "0"))
+        with pytest.raises(WorkflowValidationError, match="reserved"):
+            WorkflowLoader.load_raw(path)
+
+    def test_non_reserved_param_accepted(self, tmp_path):
+        """Non-reserved param name 'account_type' loads without error."""
+        path = self._write_json(tmp_path, self._workflow_with_param("account_type", "savings"))
+        wf = WorkflowLoader.load(path)
+        assert wf.workflow_name == "Test WF"
