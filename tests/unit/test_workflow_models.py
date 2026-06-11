@@ -369,6 +369,16 @@ class TestIndexRange:
         with pytest.raises(ValidationError, match=r"2-element"):
             self._make_element(index_range=[0, 1, 2])
 
+    def test_negative_start_raises(self):
+        """WR-01: index_range with negative start raises ValidationError."""
+        with pytest.raises(ValidationError, match=r"must be >= 0"):
+            self._make_element(index_range=[-2, 1])
+
+    def test_zero_start_accepted(self):
+        """WR-01 boundary: start == 0 is the minimum valid start."""
+        el = self._make_element(index_range=[0, 3])
+        assert el.index_range == [0, 3]
+
 
 # ---------------------------------------------------------------------------
 # TestReservedParamNameModelBoundary — CR-01: reserved 'index' rejected at the

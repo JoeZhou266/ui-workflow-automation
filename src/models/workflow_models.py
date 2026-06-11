@@ -115,6 +115,13 @@ class ElementDefinition(BaseModel):
                 f"list; got {self.index_range!r}."
             )
         start, end = self.index_range
+        # WR-01: reject negative start — negative DOM indices/ids are almost never
+        # intended and would silently produce names like 'amount_-1' targeting
+        # nonexistent elements (N confusing failures instead of one clear error).
+        if start < 0:
+            raise ValueError(
+                f"Element '{self.name}' index_range start ({start}) must be >= 0."
+            )
         if start > end:
             raise ValueError(
                 f"Element '{self.name}' index_range start ({start}) must be <= end ({end})."
