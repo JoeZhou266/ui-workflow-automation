@@ -79,6 +79,55 @@ class WorkflowLoader:
     """Loads and parses a workflow JSON file into a :class:`WorkflowDefinition`."""
 
     @staticmethod
+    def _extract_params(data: object, str_path: str) -> dict:
+        """Extract, validate, and resolve workflow parameters from raw JSON.
+
+        WR-05: single implementation shared by :meth:`load` and :meth:`load_raw` so the
+        shape check, reserved-name guard, and ``${env:KEY}`` resolution cannot drift
+        between the two entry points. Resolves ``${env:KEY}`` in each value at load time
+        (D-07) and rejects reserved parameter names (fail-loud).
+
+        Args:
+            data: Parsed JSON value (expected to be a dict with an optional
+                ``parameters`` list).
+            str_path: String form of the source file path, for error messages.
+
+        Returns:
+            Mapping of parameter name -> resolved value string (empty when absent).
+
+        Raises:
+            WorkflowValidationError: If a parameter entry has the wrong shape, uses a
+                reserved name, or its value cannot be resolved.
+        """
+        params: dict = {}
+        raw_params = data.get("parameters") if isinstance(data, dict) else None
+        if not raw_params:
+            return params
+        try:
+            for p in raw_params:
+                if not isinstance(p, dict) or "name" not in p or "value" not in p:
+                    raise WorkflowValidationError(
+                        f"Each entry in 'parameters' must be an object with 'name' and 'value' keys; "
+                        f"got: {p!r}",
+                        path=str_path,
+                    )
+                if p["name"] in _RESERVED_PARAM_NAMES:
+                    raise WorkflowValidationError(
+                        f"Workflow parameter name '{p['name']}' is reserved for "
+                        f"index_range loop expansion and cannot be used as a "
+                        f"workflow parameter.",
+                        path=str_path,
+                    )
+                params[p["name"]] = resolve_dynamic_value(p["value"])
+        except WorkflowValidationError:
+            raise
+        except (ValueError, KeyError, TypeError) as exc:
+            raise WorkflowValidationError(
+                f"Error resolving workflow parameters: {exc}", path=str_path
+            ) from exc
+        return params
+
+    @staticmethod
     def load(path: Union[str, Path]) -> WorkflowDefinition:
         """Load, parse, and validate a workflow JSON file.
 
@@ -122,32 +171,7 @@ class WorkflowLoader:
 
         # Extract workflow parameters from raw JSON before $ref resolution.
         # Resolve ${env:KEY} in each parameter value at load time (D-07).
-        params: dict = {}
-        raw_params = data.get("parameters") if isinstance(data, dict) else None
-        if raw_params:
-            try:
-                for p in raw_params:
-                    if not isinstance(p, dict) or "name" not in p or "value" not in p:
-                        raise WorkflowValidationError(
-                            f"Each entry in 'parameters' must be an object with 'name' and 'value' keys; "
-                            f"got: {p!r}",
-                            path=str_path,
-                        )
-                    if p["name"] in _RESERVED_PARAM_NAMES:
-                        raise WorkflowValidationError(
-                            f"Workflow parameter name '{p['name']}' is reserved for "
-                            f"index_range loop expansion and cannot be used as a "
-                            f"workflow parameter.",
-                            path=str_path,
-                        )
-                    resolved_value = resolve_dynamic_value(p["value"])
-                    params[p["name"]] = resolved_value
-            except WorkflowValidationError:
-                raise
-            except (ValueError, KeyError, TypeError) as exc:
-                raise WorkflowValidationError(
-                    f"Error resolving workflow parameters: {exc}", path=str_path
-                ) from exc
+        params = WorkflowLoader._extract_params(data, str_path)
 
         try:
             data = resolve_refs(data, file_path.parent, params=params)
@@ -183,25 +207,7 @@ class WorkflowLoader:
         try:
             raw = file_path.read_text(encoding="utf-8")
             data = json.loads(raw)
-            params: dict = {}
-            raw_params = data.get("parameters") if isinstance(data, dict) else None
-            if raw_params:
-                for p in raw_params:
-                    if not isinstance(p, dict) or "name" not in p or "value" not in p:
-                        raise WorkflowValidationError(
-                            f"Each entry in 'parameters' must be an object with 'name' and 'value' keys; "
-                            f"got: {p!r}",
-                            path=str_path,
-                        )
-                    if p["name"] in _RESERVED_PARAM_NAMES:
-                        raise WorkflowValidationError(
-                            f"Workflow parameter name '{p['name']}' is reserved for "
-                            f"index_range loop expansion and cannot be used as a "
-                            f"workflow parameter.",
-                            path=str_path,
-                        )
-                    resolved_value = resolve_dynamic_value(p["value"])
-                    params[p["name"]] = resolved_value
+            params = WorkflowLoader._extract_params(data, str_path)
             return resolve_refs(data, file_path.parent, params=params)
         except WorkflowValidationError:
             raise  # Already typed — re-raise as-is
