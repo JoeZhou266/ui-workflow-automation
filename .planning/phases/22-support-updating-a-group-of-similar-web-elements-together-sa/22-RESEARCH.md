@@ -484,22 +484,24 @@ All claims in this research are verified from direct inspection of the codebase.
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+All three questions were resolved during planning (Phase 22 plans 22-01 / 22-02).
 
 1. **`${index}` absent from `name` when `index_range` is set**
    - What we know: The engine would still loop and run the same element name N times.
    - What's unclear: Should this be a warning, a hard error, or silently allowed?
-   - Recommendation: Log a WARNING from `_run_section` but do not fail. This allows deliberate use cases like "click the same button N times".
+   - **RESOLVED: warn, do not fail.** Plan 02 Task 3 adds a WARNING-level log from `_run_section` when `index_range` is set but `${index}` appears in neither `name` nor `locator.value` (Pitfall 4). This allows deliberate use cases like "click the same button N times" while flagging likely authoring mistakes.
 
 2. **`index_range` with `required=True` and `value=None` (sparse index groups)**
    - What we know: The existing model validator for `value_required_for_input_actions` fires at model construction, before the engine sees the element. If `required=True` and `value=None`, it raises at load time.
    - What's unclear: Should `required` semantics be relaxed for indexed groups?
-   - Recommendation: No change — `required=True` + `value=None` is still an authoring error regardless of `index_range`. The constraint is unchanged.
+   - **RESOLVED: no change.** `required=True` + `value=None` is still an authoring error regardless of `index_range`. The existing validator constraint is unchanged; Plan 02 does not touch it.
 
 3. **`index_range` on an element with assertions**
    - What we know: `AssertionDefinition` is a per-element list. The `model_copy` for the concrete element carries over the same assertions. If assertions reference `${index}` in their locator, the locator resolver will not expand it (assertions pass locators through a different path).
    - What's unclear: Does Phase 22 scope include assertions?
-   - Recommendation: Assertion locators are not expanded in Phase 21 either; document as out of scope for Phase 22. If a future phase expands assertion locators, `${index}` will work automatically.
+   - **RESOLVED: out of scope for Phase 22.** Assertion locators are not expanded in Phase 21 either; the plans do not touch the assertion path. If a future phase expands assertion locators, `${index}` will work automatically via the same merged-params seam.
 
 ---
 
