@@ -146,9 +146,17 @@ class WorkflowEngine:
                         update["locator"] = element.locator.model_copy(
                             update={"value": locator_value.replace("${index}", str(i))}
                         )
+                    # WR-03: substitute ${index} inside element.value at the engine site so it
+                    # resolves consistently with name/locator (substring replace). Without this,
+                    # an embedded token like "row_${index}_amount" would NOT match the anchored
+                    # _PLACEHOLDER_PATTERN in resolve_dynamic_value and be typed verbatim. Only
+                    # string values are touched; non-string values (None, numbers) pass through.
+                    if isinstance(element.value, str) and "${index}" in element.value:
+                        update["value"] = element.value.replace("${index}", str(i))
                     concrete_elem = element.model_copy(update=update)
-                    # Same value applies to all indices (D-05); a future phase may index a
-                    # per-index value list (D-06 — additive, not implemented now).
+                    # Aside from any per-index ${index} expansion above, the same value applies
+                    # to all indices (D-05); a future phase may index a per-index value list
+                    # (D-06 — additive, not implemented now).
                     logger.info("[Group] %s (index=%d)", concrete_name, i)
                     self._run_element(
                         concrete_elem, dyn_section, ctx.at_element(concrete_name),

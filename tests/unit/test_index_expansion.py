@@ -272,6 +272,55 @@ class TestIndexExpansion:
         assert statuses[0] == StepStatus.PASSED
         assert statuses[2] == StepStatus.PASSED
 
+    def test_embedded_index_in_value(self):
+        """WR-03: an embedded ${index} token in element.value is substituted per
+        iteration at the engine site (consistent with name/locator handling)."""
+        engine = _make_engine()
+        element = _make_indexed_element(
+            name="amount_${index}",
+            index_range=[0, 2],
+        )
+        # Override value to carry an embedded ${index} token.
+        element = element.model_copy(update={"value": "row_${index}_amount"})
+        section = SectionDefinition(name="Section1", order=1, elements=[element])
+        ctx = self._ctx()
+
+        captured_elements = []
+
+        def capture_run(el):
+            captured_elements.append(el)
+
+        with patch("src.workflow.workflow_engine.DynamicSection"):
+            with patch("src.actions.action_factory.ActionFactory.run", side_effect=capture_run):
+                engine._run_section(section, ctx)
+
+        assert len(captured_elements) == 3
+        assert captured_elements[0].value == "row_0_amount"
+        assert captured_elements[1].value == "row_1_amount"
+        assert captured_elements[2].value == "row_2_amount"
+
+    def test_full_token_value_still_resolves(self):
+        """WR-03 no-regression: a full-token value '${index}' still resolves to the
+        per-index integer string (the value remains '${index}' at the model level and
+        is resolved downstream via merged_params, OR is substituted here — either way
+        the action receives the integer string)."""
+        engine = _make_engine()
+        element = _make_indexed_element(name="amount_${index}", index_range=[0, 2])
+        element = element.model_copy(update={"value": "${index}"})
+        section = SectionDefinition(name="Section1", order=1, elements=[element])
+        ctx = self._ctx()
+
+        captured_elements = []
+
+        def capture_run(el):
+            captured_elements.append(el)
+
+        with patch("src.workflow.workflow_engine.DynamicSection"):
+            with patch("src.actions.action_factory.ActionFactory.run", side_effect=capture_run):
+                engine._run_section(section, ctx)
+
+        assert [el.value for el in captured_elements] == ["0", "1", "2"]
+
     def test_non_indexed_element_unchanged(self):
         """No-regression: An element with index_range=None produces exactly one step
         under its literal name and one ActionFactory.run call.
