@@ -7,6 +7,7 @@ from selenium.webdriver.remote.webdriver import WebDriver
 
 from src.actions.action_factory import ActionFactory
 from src.actions.value_resolver import resolve_dynamic_value
+from src.core.constants import INDEX_PARAM_NAME, INDEX_TOKEN
 from src.core.enums import FailurePhase
 from src.core.exceptions import ElementActionError, PageLoadError, SkipElementSignal, WaitTimeoutError
 from src.core.logger import get_logger
@@ -126,42 +127,58 @@ class WorkflowEngine:
                 locator_value = element.locator.value if element.locator else None
                 # Warn (do not raise) when ${index} is set but appears nowhere it can take
                 # effect — every iteration would otherwise target the same element (Pitfall 4).
-                if "${index}" not in element.name and (
-                    locator_value is None or "${index}" not in locator_value
+                if INDEX_TOKEN not in element.name and (
+                    locator_value is None or INDEX_TOKEN not in locator_value
                 ):
                     logger.warning(
-                        "[Group] Element '%s' has index_range=%s but no '${index}' token in "
+                        "[Group] Element '%s' has index_range=%s but no '%s' token in "
                         "name or locator.value — every iteration targets the same element.",
-                        element.name, element.index_range,
+                        element.name, element.index_range, INDEX_TOKEN,
                     )
                 for i in range(start, end + 1):
                     # NEVER mutate self._params (Pitfall 1) — build a per-iteration copy.
-                    merged_params = {**self._params, "index": str(i)}
-                    # Substitute ${index} in name (D-04) and locator.value (D-03/D-03b) at the
-                    # engine site so the concrete element carries resolved values. model_copy
-                    # does not re-run validators (Pitfall 3) — intentional.
-                    concrete_name = element.name.replace("${index}", str(i))
-                    update: dict = {"name": concrete_name}
-                    if locator_value is not None and "${index}" in locator_value:
-                        update["locator"] = element.locator.model_copy(
-                            update={"value": locator_value.replace("${index}", str(i))}
-                        )
-                    # WR-03: substitute ${index} inside element.value at the engine site so it
-                    # resolves consistently with name/locator (substring replace). Without this,
-                    # an embedded token like "row_${index}_amount" would NOT match the anchored
-                    # _PLACEHOLDER_PATTERN in resolve_dynamic_value and be typed verbatim. Only
-                    # string values are touched; non-string values (None, numbers) pass through.
-                    if isinstance(element.value, str) and "${index}" in element.value:
-                        update["value"] = element.value.replace("${index}", str(i))
-                    concrete_elem = element.model_copy(update=update)
-                    # Aside from any per-index ${index} expansion above, the same value applies
-                    # to all indices (D-05); a future phase may index a per-index value list
-                    # (D-06 — additive, not implemented now).
+                    # INDEX_PARAM_NAME intentionally remains in merged_params as a downstream
+                    # backstop: a full-token value "${index}" is resolved by the action layer
+                    # via these params (WR-03/WR-04). The reserved-name guard
+                    # (RESERVED_PARAM_NAMES) ensures no author param can collide with it.
+                    merged_params = {**self._params, INDEX_PARAM_NAME: str(i)}
+                    # WR-04: single helper substitutes ${index} uniformly across name,
+                    # locator.value, and value (substring replace) so the three never drift.
+                    # model_copy does not re-run validators (Pitfall 3) — intentional and safe
+                    # because substitution only injects a stringified integer (IN-01).
+                    concrete_elem = self._substitute_index(element, i)
+                    concrete_name = concrete_elem.name
+                    # The same (post-substitution) value applies to all indices unless the
+                    # value itself carries ${index} (D-05); a future phase may index a
+                    # per-index value list (D-06 — additive, not implemented now).
                     logger.info("[Group] %s (index=%d)", concrete_name, i)
                     self._run_element(
                         concrete_elem, dyn_section, ctx.at_element(concrete_name),
                         params_override=merged_params,
                     )
+
+    @staticmethod
+    def _substitute_index(element: ElementDefinition, i: int) -> ElementDefinition:
+        """Return a concrete copy of *element* with ``${index}`` replaced by *i*.
+
+        WR-04: single substitution site for name, locator.value, and value so the three
+        cannot diverge on future edits. Uses substring ``.replace`` uniformly. Only string
+        fields carrying the token are touched (non-string ``value`` passes through). The
+        returned copy is built via ``model_copy`` which does NOT re-run validators
+        (Pitfall 3); this is safe because substitution only injects a stringified int and
+        therefore cannot violate any model invariant (IN-01).
+        """
+        token = INDEX_TOKEN
+        idx = str(i)
+        update: dict = {"name": element.name.replace(token, idx)}
+        locator_value = element.locator.value if element.locator else None
+        if isinstance(locator_value, str) and token in locator_value:
+            update["locator"] = element.locator.model_copy(
+                update={"value": locator_value.replace(token, idx)}
+            )
+        if isinstance(element.value, str) and token in element.value:
+            update["value"] = element.value.replace(token, idx)
+        return element.model_copy(update=update)
 
     def _run_element(
         self,
