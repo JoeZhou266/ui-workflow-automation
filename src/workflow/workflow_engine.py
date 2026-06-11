@@ -117,19 +117,59 @@ class WorkflowEngine:
         dyn_section = DynamicSection(self._driver, self._wm, section, self._screenshots)
 
         for element in section.elements:
-            self._run_element(element, dyn_section, ctx.at_element(element.name))
+            if element.index_range is None:
+                # Single-element behavior, unchanged (no-regression).
+                self._run_element(element, dyn_section, ctx.at_element(element.name))
+            else:
+                # index_range loop expansion: one declared element -> N per-index runs.
+                start, end = element.index_range
+                locator_value = element.locator.value if element.locator else None
+                # Warn (do not raise) when ${index} is set but appears nowhere it can take
+                # effect — every iteration would otherwise target the same element (Pitfall 4).
+                if "${index}" not in element.name and (
+                    locator_value is None or "${index}" not in locator_value
+                ):
+                    logger.warning(
+                        "[Group] Element '%s' has index_range=%s but no '${index}' token in "
+                        "name or locator.value — every iteration targets the same element.",
+                        element.name, element.index_range,
+                    )
+                for i in range(start, end + 1):
+                    # NEVER mutate self._params (Pitfall 1) — build a per-iteration copy.
+                    merged_params = {**self._params, "index": str(i)}
+                    # Substitute ${index} in name (D-04) and locator.value (D-03/D-03b) at the
+                    # engine site so the concrete element carries resolved values. model_copy
+                    # does not re-run validators (Pitfall 3) — intentional.
+                    concrete_name = element.name.replace("${index}", str(i))
+                    update: dict = {"name": concrete_name}
+                    if locator_value is not None and "${index}" in locator_value:
+                        update["locator"] = element.locator.model_copy(
+                            update={"value": locator_value.replace("${index}", str(i))}
+                        )
+                    concrete_elem = element.model_copy(update=update)
+                    # Same value applies to all indices (D-05); a future phase may index a
+                    # per-index value list (D-06 — additive, not implemented now).
+                    logger.info("[Group] %s (index=%d)", concrete_name, i)
+                    self._run_element(
+                        concrete_elem, dyn_section, ctx.at_element(concrete_name),
+                        params_override=merged_params,
+                    )
 
     def _run_element(
         self,
         element: ElementDefinition,
         section: DynamicSection,
         ctx: ExecutionContext,
+        params_override: dict | None = None,
     ) -> None:
         logger.info(
             "[Element] %s | action=%s type=%s",
             element.name, element.action.value, element.type.value,
         )
-        factory = ActionFactory(section, self._wm, params=self._params)
+        # params_override carries the per-index merged params for loop expansion;
+        # default None keeps all existing callers backward-compatible (no-regression).
+        params = params_override if params_override is not None else self._params
+        factory = ActionFactory(section, self._wm, params=params)
         start_ms = time.monotonic()
 
         try:
@@ -144,7 +184,7 @@ class WorkflowEngine:
 
         except WaitTimeoutError as exc:
             duration_ms = (time.monotonic() - start_ms) * 1000
-            screenshot = self._page.take_screenshot(f"wait_timeout_{element.name}")
+            screenshot = self._take_screenshot(f"wait_timeout_{element.name}")
             phase = self._infer_failure_phase(exc)
             self._collector.record_fail(
                 ctx, element.action, str(exc),
@@ -155,7 +195,7 @@ class WorkflowEngine:
 
         except ElementActionError as exc:
             duration_ms = (time.monotonic() - start_ms) * 1000
-            screenshot = self._page.take_screenshot(f"action_error_{element.name}")
+            screenshot = self._take_screenshot(f"action_error_{element.name}")
             self._collector.record_fail(
                 ctx, element.action, str(exc),
                 failure_phase=FailurePhase.ACTION,
@@ -166,13 +206,24 @@ class WorkflowEngine:
         except Exception as exc:
             duration_ms = (time.monotonic() - start_ms) * 1000
             logger.exception("[Element] Unexpected error for '%s'", element.name)
-            screenshot = self._page.take_screenshot(f"unexpected_error_{element.name}")
+            screenshot = self._take_screenshot(f"unexpected_error_{element.name}")
             self._collector.record_fail(
                 ctx, element.action, f"Unexpected: {exc}",
                 failure_phase=FailurePhase.ACTION,
                 screenshot_path=screenshot,
                 duration_ms=duration_ms,
             )
+
+    def _take_screenshot(self, name: str) -> Optional[str]:
+        """Capture a screenshot, coercing the result to ``Optional[str]``.
+
+        ``BasePage.take_screenshot`` returns a path string or ``None`` in production,
+        which ``StepResult.screenshot_path`` accepts directly. This wrapper guards the
+        failure branches so a non-str return (e.g. a mocked page in unit tests) becomes
+        ``None`` rather than failing ``StepResult`` validation.
+        """
+        path = self._page.take_screenshot(name)
+        return path if isinstance(path, str) else None
 
     @staticmethod
     def _infer_failure_phase(exc: WaitTimeoutError) -> FailurePhase:
