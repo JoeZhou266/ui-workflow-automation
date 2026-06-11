@@ -110,8 +110,8 @@ Plans:
 **Goal:** One `ElementDefinition` carrying an `${index}` token plus a new inclusive `index_range: [start, end]` field expands into N per-index interactions — each sharing the same type/action/value, with `${index}` substituted (embedded anywhere) into the element `name` and `locator.value`, recorded as one StepResult per index. A failed index continues the group; a missing index honors `skip_if_not_visible`. `index` is a reserved param name. Reuses the Phase 17 anchored-value and Phase 21 partial-locator expansion paths unchanged.
 **Requirements**: D-01..D-09 + reserved-name + no-regression (see 22-CONTEXT.md / 22-VALIDATION.md)
 **Depends on:** Phase 21
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [x] 22-01-PLAN.md — Wave 0 RED tests: TestIndexRange (model), TestReservedParamName (loader), TestIndexExpansion (engine, no browser) covering D-01..D-09 + reserved + no-regression
-- [ ] 22-02-PLAN.md — Implementation: index_range field + validator, reserved 'index' guard (load + load_raw), _run_section loop expansion + _run_element params_override (turns Wave 0 tests GREEN)
+- [x] 22-02-PLAN.md — Implementation: index_range field + validator, reserved 'index' guard (load + load_raw), _run_section loop expansion + _run_element params_override (turns Wave 0 tests GREEN)
