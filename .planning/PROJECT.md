@@ -10,9 +10,9 @@ A data-driven Selenium browser automation framework for Python 3.9.13. Workflow 
 
 ## Current State
 
-**v1.2 Advanced Conditional Logic milestone** — Phase 21 complete (2026-06-10).
+**v1.2 Advanced Conditional Logic milestone** — Phase 22 complete (2026-06-11).
 
-- Phase 21 complete, 417 unit tests passing
+- Phase 22 complete, 435 unit tests passing
 - Full element type coverage: checkbox, radio, select, number, email, JS execution
 - Dynamic placeholder system: SIN, names, last-day-of-month, env config values
 - Workflow composition: `$ref` file references + parameters + conditional `$ref` for branch workflows
@@ -25,6 +25,7 @@ A data-driven Selenium browser automation framework for Python 3.9.13. Workflow 
 - Log file output: optional daily-rolling `TimedRotatingFileHandler` via `LOG_FILE_PATH` env var or `log_file_path` YAML key; rotates at midnight, 30-day retention (Phase 18)
 - `first_valid` sentinel: `select_by_index` with `value: "first_valid"` (case-insensitive) selects the first `<option>` with a non-empty `value` attribute, skipping leading placeholders; raises `ElementActionError` if none qualify (Phase 20)
 - Parameterized locators: locator `value` supports embedded `${param}` expansion (full-value or inside XPath/CSS, e.g. `//div[@id='${company_code}']`, `#row-${id}`) resolved from workflow `params` via a non-anchored path in `ActionFactory.run`; unknown tokens fail loud; element-value anchored path unchanged (Phase 21)
+- Indexed element groups: one `ElementDefinition` with an `${index}` token plus inclusive `index_range: [start, end]` expands into N per-index interactions — `${index}` substituted (embedded anywhere) into `name` and `locator.value`, same value applied to each, one StepResult per index; a failed index continues the group and a missing index honors `skip_if_not_visible`; `index` is a reserved workflow param name (rejected at load) (Phase 22)
 
 Tech stack: Python 3.9.13, Selenium, Pydantic v2, pytest, PyYAML, python-dotenv.
 
@@ -56,6 +57,7 @@ Tech stack: Python 3.9.13, Selenium, Pydantic v2, pytest, PyYAML, python-dotenv.
 - ✓ Compound `&&` / `||` conditions in conditional `$ref` — two-pass token-split evaluator with `&&`-before-`||` precedence; all atoms evaluated before combining (fail-fast) — v1.2 Phase 16
 - ✓ Parameter value expansion: `${param_name}` in element values resolved from workflow `params` block at action-dispatch time — v1.2 Phase 17
 - ✓ Log file output: optional `TimedRotatingFileHandler` configured via `LOG_FILE_PATH` env var (priority) or `log_file_path` YAML key; midnight rotation, 30-day retention, UTF-8, `logs/` gitignored — v1.2 Phase 18
+- ✓ Indexed element-group expansion: `${index}` token + inclusive `index_range: [start, end]` on one `ElementDefinition` expands into N per-index interactions (substituted into `name`/`locator.value`, same value each, one StepResult per index, fail-continue + `skip_if_not_visible` per index); `index` reserved as a workflow param name at load — v1.2 Phase 22
 
 ### Active (v2.0 candidates)
 
@@ -90,4 +92,4 @@ Tech stack: Python 3.9.13, Selenium, Pydantic v2, pytest, PyYAML, python-dotenv.
 - Environment config (base URLs, credentials) in `configs/env.*.yaml` — never hardcoded
 
 ---
-*Last updated: 2026-06-10 after Phase 21 completion*
+*Last updated: 2026-06-11 after Phase 22 completion*
