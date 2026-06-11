@@ -86,6 +86,10 @@ class ElementDefinition(BaseModel):
     assertions: Optional[List[AssertionDefinition]] = None
     retryable: bool = False
     retry_count: int = Field(default=0, ge=0, le=10)
+    # None means single-element / no loop (D-01); existing JSON deserializes unchanged.
+    # `value` deliberately stays Optional[Any] so a future per-index value list is an
+    # additive, backward-compatible change (D-06 — not implemented now).
+    index_range: Optional[List[int]] = None
 
     @model_validator(mode="after")
     def value_required_for_input_actions(self) -> ElementDefinition:
@@ -96,6 +100,23 @@ class ElementDefinition(BaseModel):
             raise ValueError(
                 f"Element '{self.name}' has action '{self.action}' and required=true "
                 "but no value is provided."
+            )
+        return self
+
+    @model_validator(mode="after")
+    def validate_index_range(self) -> ElementDefinition:
+        # mode="after" (not field_validator) because the messages reference self.name (Pitfall 6).
+        if self.index_range is None:
+            return self
+        if len(self.index_range) != 2:
+            raise ValueError(
+                f"Element '{self.name}' index_range must be a 2-element [start, end] "
+                f"list; got {self.index_range!r}."
+            )
+        start, end = self.index_range
+        if start > end:
+            raise ValueError(
+                f"Element '{self.name}' index_range start ({start}) must be <= end ({end})."
             )
         return self
 
