@@ -326,3 +326,45 @@ class TestWaitConditionDefinition:
 
     def test_wait_seconds_enum_string_value(self):
         assert WaitConditionType.WAIT_SECONDS.value == "wait_seconds"
+
+
+# ---------------------------------------------------------------------------
+# TestIndexRange — Wave 0 RED tests for Phase 22 index_range field (D-01, D-02b, D-02c)
+# ---------------------------------------------------------------------------
+
+class TestIndexRange:
+    def _make_element(self, index_range=None, **kwargs) -> ElementDefinition:
+        return ElementDefinition(
+            name="amount_${index}",
+            type=ElementType.NUMBER,
+            action=ActionType.INPUT,
+            locator=LocatorDefinition(by="id", value="el_${index}"),
+            value="100",
+            index_range=index_range,
+            **kwargs,
+        )
+
+    def test_no_index_range_defaults_to_none(self):
+        """D-01: index_range field defaults to None when absent."""
+        el = self._make_element()
+        assert el.index_range is None
+
+    def test_valid_index_range_accepted(self):
+        """Positive guard: [0, 3] is a valid range (start <= end)."""
+        el = self._make_element(index_range=[0, 3])
+        assert el.index_range == [0, 3]
+
+    def test_single_element_range_accepted(self):
+        """Positive guard: [5, 5] is valid (start == end — single index)."""
+        el = self._make_element(index_range=[5, 5])
+        assert el.index_range == [5, 5]
+
+    def test_start_greater_than_end_raises(self):
+        """D-02b: index_range=[3, 0] (start > end) raises ValidationError."""
+        with pytest.raises(ValidationError, match=r"start.*<=.*end|start.*must be"):
+            self._make_element(index_range=[3, 0])
+
+    def test_length_not_2_raises(self):
+        """D-02c: index_range with length != 2 raises ValidationError."""
+        with pytest.raises(ValidationError, match=r"2-element"):
+            self._make_element(index_range=[0, 1, 2])
