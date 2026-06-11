@@ -12,6 +12,12 @@ from src.models.workflow_models import WorkflowDefinition
 
 logger = get_logger("json_loader")
 
+# Workflow parameter names reserved by the framework. `index` is the loop variable
+# injected per-iteration by Phase 22 index_range expansion; allowing an author to
+# define it as a workflow param would silently shadow the loop variable, so it is
+# rejected at load time (fail-loud). frozenset so future reserved names need no logic change.
+_RESERVED_PARAM_NAMES: frozenset[str] = frozenset({"index"})
+
 
 def resolve_refs(
     data: object,
@@ -127,6 +133,13 @@ class WorkflowLoader:
                             f"got: {p!r}",
                             path=str_path,
                         )
+                    if p["name"] in _RESERVED_PARAM_NAMES:
+                        raise WorkflowValidationError(
+                            f"Workflow parameter name '{p['name']}' is reserved for "
+                            f"index_range loop expansion and cannot be used as a "
+                            f"workflow parameter.",
+                            path=str_path,
+                        )
                     resolved_value = resolve_dynamic_value(p["value"])
                     params[p["name"]] = resolved_value
             except WorkflowValidationError:
@@ -178,6 +191,13 @@ class WorkflowLoader:
                         raise WorkflowValidationError(
                             f"Each entry in 'parameters' must be an object with 'name' and 'value' keys; "
                             f"got: {p!r}",
+                            path=str_path,
+                        )
+                    if p["name"] in _RESERVED_PARAM_NAMES:
+                        raise WorkflowValidationError(
+                            f"Workflow parameter name '{p['name']}' is reserved for "
+                            f"index_range loop expansion and cannot be used as a "
+                            f"workflow parameter.",
                             path=str_path,
                         )
                     resolved_value = resolve_dynamic_value(p["value"])
