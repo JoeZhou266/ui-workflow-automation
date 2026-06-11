@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Advanced Conditional Logic
-status: milestone_complete
-stopped_at: Milestone complete (Phase 21 was final phase)
-last_updated: 2026-06-10T05:00:57.507Z
-last_activity: 2026-06-10 -- Phase 21 execution started
+status: completed
+stopped_at: Phase 22 context gathered
+last_updated: "2026-06-11T14:08:14.215Z"
+last_activity: 2026-06-10
 progress:
-  total_phases: 20
-  completed_phases: 16
+  total_phases: 21
+  completed_phases: 17
   total_plans: 24
   completed_plans: 27
-  percent: 80
+  percent: 81
 ---
 
 # Project State
@@ -84,6 +84,7 @@ Note: Both items require real browser execution (new window context persistence,
 - Phase 18 added: Support setting the log file path, outputting and rolling every day
 - Phase 20 added: Support choose first validated option that means value is not empty while element type is select and action is select_by_index
 - Phase 21 added: Support locator value from workflow parameters (e.g. locator value "${company_code}" resolved from params)
+- Phase 22 added: Support updating a group of similar web elements together (same type/action/value) whose names differ only by an index, e.g. amount_0/amount_1 or bank_0_account/bank_1_account
 
 ### Phase 6 Decisions
 
@@ -94,6 +95,6 @@ Note: Both items require real browser execution (new window context persistence,
 
 ## Session Continuity
 
-Last session: 2026-06-10T03:15:48.941Z
-Stopped at: Phase 21 context gathered
-Resume file: .planning/phases/21-support-locator-value-from-workflow-parameters-e-g-locator-v/21-CONTEXT.md
+Last session: 2026-06-11T14:08:14.212Z
+Stopped at: Phase 22 context gathered
+Resume file: .planning/phases/22-support-updating-a-group-of-similar-web-elements-together-sa/22-CONTEXT.md
