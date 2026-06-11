@@ -50,5 +50,9 @@ TESTDATA_DIR: str = "testdata/workflows"
 # INDEX_TOKEN is the literal ${index} placeholder substituted in name/locator/value.
 INDEX_PARAM_NAME: str = "index"
 INDEX_TOKEN: str = "${index}"
+# Maximum number of indices a single index_range may span (WR-02): bounds untrusted
+# JSON input the same way retry_count (<=10) and timeout (<=300) are bounded, so a
+# typo like [0, 1000000] fails loud at load time instead of hanging the run.
+MAX_INDEX_SPAN: int = 1000
 # Workflow parameter names reserved by the framework, enforced at the model boundary.
 RESERVED_PARAM_NAMES: frozenset[str] = frozenset({INDEX_PARAM_NAME})

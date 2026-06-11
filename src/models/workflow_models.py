@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
-from src.core.constants import RESERVED_PARAM_NAMES
+from src.core.constants import MAX_INDEX_SPAN, RESERVED_PARAM_NAMES
 from src.core.enums import ActionType, ElementType, WaitConditionType
 
 
@@ -125,6 +125,14 @@ class ElementDefinition(BaseModel):
         if start > end:
             raise ValueError(
                 f"Element '{self.name}' index_range start ({start}) must be <= end ({end})."
+            )
+        # WR-02: bound the span so a JSON typo (e.g. [0, 1000000]) fails loud at load
+        # time instead of generating a million model_copy/StepResult records at runtime.
+        span = end - start + 1
+        if span > MAX_INDEX_SPAN:
+            raise ValueError(
+                f"Element '{self.name}' index_range spans {span} indices; "
+                f"maximum is {MAX_INDEX_SPAN}."
             )
         return self
 

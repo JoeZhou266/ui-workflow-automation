@@ -379,6 +379,20 @@ class TestIndexRange:
         el = self._make_element(index_range=[0, 3])
         assert el.index_range == [0, 3]
 
+    def test_span_at_max_accepted(self):
+        """WR-02 boundary: a span exactly equal to MAX_INDEX_SPAN is accepted."""
+        from src.core.constants import MAX_INDEX_SPAN
+
+        el = self._make_element(index_range=[0, MAX_INDEX_SPAN - 1])
+        assert el.index_range == [0, MAX_INDEX_SPAN - 1]
+
+    def test_span_over_max_raises(self):
+        """WR-02: a span exceeding MAX_INDEX_SPAN raises ValidationError."""
+        from src.core.constants import MAX_INDEX_SPAN
+
+        with pytest.raises(ValidationError, match=r"maximum is"):
+            self._make_element(index_range=[0, MAX_INDEX_SPAN])
+
 
 # ---------------------------------------------------------------------------
 # TestReservedParamNameModelBoundary — CR-01: reserved 'index' rejected at the
