@@ -342,3 +342,36 @@ class TestIndexExpansion:
         steps = engine._collector.summary().steps
         assert len(steps) == 1
         assert steps[0].element_name == "plain_element"
+
+    def test_missing_token_warns_and_runs_n_identical(self, caplog):
+        """WR-06: index_range set but no ${index} token in name or locator.value —
+        engine logs a WARNING and still runs N iterations, all targeting the same
+        concrete name (the deliberately-tolerated author-error path)."""
+        import logging
+
+        engine = _make_engine()
+        element = _make_indexed_element(
+            name="static_amount",
+            locator=_make_locator("static_id"),
+            index_range=[0, 2],
+        )
+        section = SectionDefinition(name="Section1", order=1, elements=[element])
+        ctx = self._ctx()
+
+        with caplog.at_level(logging.WARNING):
+            mock_run = _run_section_with_patch(
+                engine, section, ctx, run_side_effect=[None, None, None]
+            )
+
+        # N iterations still run despite the missing token.
+        assert mock_run.call_count == 3
+        # All N StepResults collide on the identical concrete name.
+        steps = engine._collector.summary().steps
+        assert len(steps) == 3
+        assert [s.element_name for s in steps] == ["static_amount"] * 3
+        # The warning fired.
+        assert any(
+            "index_range" in rec.message and "no" in rec.message.lower()
+            for rec in caplog.records
+            if rec.levelno == logging.WARNING
+        )
