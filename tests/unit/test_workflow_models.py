@@ -368,3 +368,49 @@ class TestIndexRange:
         """D-02c: index_range with length != 2 raises ValidationError."""
         with pytest.raises(ValidationError, match=r"2-element"):
             self._make_element(index_range=[0, 1, 2])
+
+
+# ---------------------------------------------------------------------------
+# TestReservedParamNameModelBoundary — CR-01: reserved 'index' rejected at the
+# model layer for every construction path, not just the JSON loader.
+# ---------------------------------------------------------------------------
+
+class TestReservedParamNameModelBoundary:
+    def _make_workflow(self, param_name: str) -> dict:
+        return {
+            "workflow_name": "Test WF",
+            "start_url": "https://example.com",
+            "parameters": [{"name": param_name, "value": "0"}],
+            "tabs": [],
+        }
+
+    @requires_pydantic_v2
+    def test_index_param_rejected_by_model_validate(self):
+        """CR-01: model_validate rejects a parameter named 'index'."""
+        with pytest.raises(ValidationError, match="reserved"):
+            WorkflowDefinition.model_validate(self._make_workflow("index"))
+
+    def test_index_param_rejected_by_direct_construction(self):
+        """CR-01: direct WorkflowDefinition(...) construction (the path the engine
+        constructor relies on) rejects a parameter named 'index'."""
+        from src.models.workflow_models import ParameterDefinition
+
+        with pytest.raises(ValidationError, match="reserved"):
+            WorkflowDefinition(
+                workflow_name="Test WF",
+                start_url="https://example.com",
+                tabs=[],
+                parameters=[ParameterDefinition(name="index", value="0")],
+            )
+
+    def test_non_reserved_param_accepted_at_model_boundary(self):
+        """CR-01: a non-reserved param name constructs without error."""
+        from src.models.workflow_models import ParameterDefinition
+
+        wf = WorkflowDefinition(
+            workflow_name="Test WF",
+            start_url="https://example.com",
+            tabs=[],
+            parameters=[ParameterDefinition(name="account_type", value="savings")],
+        )
+        assert wf.parameters[0].name == "account_type"

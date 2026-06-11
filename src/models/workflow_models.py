@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
+from src.core.constants import RESERVED_PARAM_NAMES
 from src.core.enums import ActionType, ElementType, WaitConditionType
 
 
@@ -184,6 +185,23 @@ class WorkflowDefinition(BaseModel):
         if not v.strip():
             raise ValueError("start_url must not be empty")
         return v
+
+    @model_validator(mode="after")
+    def reject_reserved_param_names(self) -> WorkflowDefinition:
+        # CR-01: enforce the reserved-name invariant at the model boundary so EVERY
+        # construction path is covered — model_validate (loader), direct
+        # WorkflowDefinition(...) construction, and the engine constructor alike.
+        # A param named 'index' would otherwise be silently overwritten by the loop
+        # counter in WorkflowEngine._run_section's per-iteration merge. The loader's
+        # string-level check remains as an earlier/clearer error for JSON input.
+        for p in (self.parameters or []):
+            if p.name in RESERVED_PARAM_NAMES:
+                raise ValueError(
+                    f"Workflow parameter name '{p.name}' is reserved for "
+                    "index_range loop expansion and cannot be used as a "
+                    "workflow parameter."
+                )
+        return self
 
     @property
     def ordered_tabs(self) -> List[TabDefinition]:

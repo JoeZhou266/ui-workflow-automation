@@ -43,3 +43,12 @@ JS_JQUERY_ACTIVE: str = (
 DEFAULT_ENV: str = "dev"
 CONFIGS_DIR: str = "configs"
 TESTDATA_DIR: str = "testdata/workflows"
+
+# Index_range loop expansion (Phase 22)
+# INDEX_PARAM_NAME is the per-iteration loop variable injected by the engine; it is
+# reserved and may not be used as a workflow parameter name (silent shadowing guard).
+# INDEX_TOKEN is the literal ${index} placeholder substituted in name/locator/value.
+INDEX_PARAM_NAME: str = "index"
+INDEX_TOKEN: str = "${index}"
+# Workflow parameter names reserved by the framework, enforced at the model boundary.
+RESERVED_PARAM_NAMES: frozenset[str] = frozenset({INDEX_PARAM_NAME})
